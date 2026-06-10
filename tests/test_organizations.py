@@ -253,3 +253,169 @@ class OrganizationHolidayTest(TestCase):
             end_date=date(2025, 1, 3),
         )
         self.assertEqual(vacation.workdays, 2)
+
+
+class TimerOnlyModeTest(TestCase):
+    """Tests for timer-only mode feature (Phase 1)."""
+
+    def setUp(self):
+        self.client = Client()
+        self.manager = User.objects.create_user(
+            username="manager", email="manager@example.com", password="pass123"
+        )
+        self.org = Organization.objects.create(
+            name="Acme Corp", created_by=self.manager
+        )
+        self.membership = OrganizationMembership.objects.create(
+            organization=self.org, user=self.manager, role="manager"
+        )
+        self.employee = User.objects.create_user(
+            username="employee", email="emp@example.com", password="pass123"
+        )
+        OrganizationMembership.objects.create(
+            organization=self.org, user=self.employee, role="employee"
+        )
+        self.client.login(username="manager", password="pass123")
+
+    def test_timer_only_mode_default_false(self):
+        """New organizations start with timer_only_mode=False."""
+        self.assertFalse(self.org.timer_only_mode)
+
+    def test_toggle_timer_mode_as_manager(self):
+        """Manager can toggle timer-only mode on and off."""
+        # Toggle ON
+        response = self.client.post(reverse("toggle_timer_mode"))
+        self.assertEqual(response.status_code, 302)
+        self.org.refresh_from_db()
+        self.assertTrue(self.org.timer_only_mode)
+
+        # Toggle OFF
+        response = self.client.post(reverse("toggle_timer_mode"))
+        self.assertEqual(response.status_code, 302)
+        self.org.refresh_from_db()
+        self.assertFalse(self.org.timer_only_mode)
+
+    def test_toggle_timer_mode_as_employee_denied(self):
+        """Employee cannot toggle timer-only mode (redirected)."""
+        self.client.login(username="employee", password="pass123")
+        response = self.client.post(reverse("toggle_timer_mode"))
+        self.assertEqual(response.status_code, 302)
+        self.org.refresh_from_db()
+        self.assertFalse(self.org.timer_only_mode)  # unchanged
+
+    def test_weekly_calendar_returns_200(self):
+        """Weekly calendar view returns 200 for manager."""
+        response = self.client.get(reverse("org_weekly_calendar"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Acme Corp")
+
+    def test_weekly_calendar_specific_week(self):
+        """Weekly calendar accepts week query params."""
+        from datetime import datetime as dt
+        today = dt.now().date()
+        iso = today.isocalendar()
+        response = self.client.get(
+            f"{reverse('org_weekly_calendar')}?year={iso[0]}&week={iso[1]}"
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_weekly_calendar_redirects_if_no_org(self):
+        """User without org is redirected to org_create."""
+        loner = User.objects.create_user(username="loner", password="pass123")
+        self.client.login(username="loner", password="pass123")
+        response = self.client.get(reverse("org_weekly_calendar"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_weekly_calendar_shows_entries(self):
+        """Calendar shows time entries for employees in the week."""
+        from datetime import datetime as dt, timedelta
+        import calendar
+
+        today = dt.now().date()
+        monday = today - timedelta(days=today.weekday())
+
+        profile = Profile.objects.create(
+            user=self.employee,
+            title="Dev",
+            position="Developer",
+            weekly_hours=40,
+            hourly_rate=50,
+        )
+        TimeEntry.objects.create(
+            profile=profile,
+            date=monday,
+            start_time=dt.now().time(),
+            end_time=(dt.now() + timedelta(hours=8)).time(),
+            pause_duration=1,
+        )
+
+        iso = monday.isocalendar()
+        response = self.client.get(
+            f"{reverse('org_weekly_calendar')}?year={iso[0]}&week={iso[1]}"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Dev")
+
+    def test_move_entry_as_manager(self):
+        """Manager can move an entry to a different day."""
+        from datetime import datetime as dt, timedelta
+
+        today = dt.now().date()
+        profile = Profile.objects.create(
+            user=self.employee,
+            title="Dev",
+            position="Developer",
+            weekly_hours=40,
+            hourly_rate=50,
+        )
+        entry = TimeEntry.objects.create(
+            profile=profile,
+            date=today,
+            start_time=dt.now().time(),
+            end_time=(dt.now() + timedelta(hours=8)).time(),
+            pause_duration=1,
+        )
+
+        new_date = (today + timedelta(days=1)).isoformat()
+        response = self.client.post(
+            reverse("move_entry", kwargs={"entry_id": entry.pk}),
+            {"new_date": new_date},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content, {"status": "ok"})
+        entry.refresh_from_db()
+        self.assertEqual(entry.date.isoformat(), new_date)
+
+    def test_move_entry_as_employee_denied(self):
+        """Employee cannot move entries."""
+        from datetime import datetime as dt, timedelta
+
+        today = dt.now().date()
+        profile = Profile.objects.create(
+            user=self.employee,
+            title="Dev",
+            position="Developer",
+            weekly_hours=40,
+            hourly_rate=50,
+        )
+        entry = TimeEntry.objects.create(
+            profile=profile,
+            date=today,
+            start_time=dt.now().time(),
+            end_time=(dt.now() + timedelta(hours=8)).time(),
+            pause_duration=1,
+        )
+
+        self.client.login(username="employee", password="pass123")
+        new_date = (today + timedelta(days=1)).isoformat()
+        response = self.client.post(
+            reverse("move_entry", kwargs={"entry_id": entry.pk}),
+            {"new_date": new_date},
+        )
+        self.assertEqual(response.status_code, 302)  # redirected to login/error
+
+
+# Make TimeEntry available for tests above
+from trackable.timetracking.models import TimeEntry
+
+
