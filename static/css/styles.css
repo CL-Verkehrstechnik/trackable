@@ -117,10 +117,7 @@ body {
     font-size: 1.05rem;
     font-weight: 800;
     letter-spacing: -.4px;
-    background: linear-gradient(135deg, var(--ctp-mauve) 0%, var(--ctp-lavender) 50%, var(--ctp-pink) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--ctp-mauve);
     white-space: nowrap;
 }
 
@@ -290,16 +287,16 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--ctp-mauve) 0%, var(--ctp-pink) 100%);
-    color: var(--ctp-crust);
+    background: var(--ctp-mauve);
+    color: #fff;
     border: 1px solid rgba(202,158,230,.2);
     box-shadow: 0 3px 12px rgba(202,158,230,.22);
 }
 .btn-primary:hover {
     transform: translateY(-2px);
+    background: #b77fe0;
     box-shadow: 0 8px 22px rgba(202,158,230,.38), var(--glow-mauve);
-    filter: brightness(1.06);
-    color: var(--ctp-crust);
+    color: #fff;
     text-decoration: none;
 }
 .btn-primary:active { transform: translateY(0); }
@@ -354,7 +351,7 @@ body {
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--ctp-mauve), var(--ctp-pink), var(--ctp-blue));
+    background: var(--ctp-mauve);
     opacity: 0;
     transition: opacity .25s;
 }
@@ -496,12 +493,22 @@ h1, h2, h3, h4 { font-weight: 700; letter-spacing: -.25px; }
 h1 {
     font-size: 1.85rem;
     font-weight: 800;
-    background: linear-gradient(135deg, var(--ctp-mauve) 0%, var(--ctp-pink) 60%, var(--ctp-lavender) 100%);
+    color: var(--ctp-mauve);
+    line-height: 1.15;
+    margin-bottom: .4rem;
+}
+
+/* Gradient heading only on landing page (lp- prefix) */
+.lp-hero-title {
+    font-size: clamp(2.8rem, 6vw, 4.5rem);
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1.05;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--ctp-text) 0%, var(--ctp-lavender) 40%, var(--ctp-mauve) 70%, var(--ctp-pink) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    line-height: 1.15;
-    margin-bottom: .4rem;
 }
 h2 { font-size: 1.25rem; color: var(--ctp-text);     margin-bottom: .35rem; }
 h3 { font-size: 1rem;    color: var(--ctp-subtext1); font-weight: 600; }
@@ -1146,6 +1153,7 @@ hr, .divider { border: none; border-top: 1px solid var(--ctp-overlay0); margin: 
 }
 [data-theme="light"] .btn-primary:hover {
     color: #fff;
+    background: #9b5de7;
     box-shadow: 0 8px 22px rgba(136,57,239,.32), var(--glow-mauve);
 }
 [data-theme="light"] .btn-secondary {
