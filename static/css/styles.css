@@ -629,9 +629,11 @@ hr, .divider { border: none; border-top: 1px solid var(--ctp-overlay0); margin: 
         gap: 3px;
         padding: 14px 16px 18px;
         z-index: 199;
+    }
+    .site-nav.is-open {
+        display: flex;
         animation: slideDown .22s ease-out;
     }
-    .site-nav.is-open { display: flex; }
 
     .nav-link { padding: 11px 14px; border-radius: var(--radius-sm); font-size: .95rem; }
     .nav-divider { display: block; height: 1px; width: auto; background: rgba(202,158,230,.12); margin: 6px 0; }
@@ -1356,6 +1358,97 @@ hr, .divider { border: none; border-top: 1px solid var(--ctp-overlay0); margin: 
 .toggle-switch input:checked + .toggle-slider::before {
     transform: translateX(20px);
     background: var(--ctp-crust);
+}
+
+/* ─── Layout Helpers ─── */
+.flex-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.grid-card {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 18px;
+}
+
+.card-label {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ctp-mauve);
+    margin-bottom: 5px;
+}
+
+/* ─── Empty State ─── */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    max-width: 520px;
+    margin: 20px auto 0;
+}
+.empty-state-icon {
+    font-size: 2.8rem;
+    margin-bottom: 16px;
+    line-height: 1;
+}
+.empty-state-text {
+    color: var(--ctp-subtext0);
+    margin-bottom: 28px;
+    font-size: .95rem;
+}
+.empty-state-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+}
+.empty-state-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 360px;
+    margin: 0 auto;
+    text-align: left;
+}
+.step {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--ctp-overlay0);
+    font-size: .88rem;
+}
+.step:last-child { border-bottom: none; }
+.step-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(202,158,230,.12);
+    color: var(--ctp-mauve);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: .82rem;
+    flex-shrink: 0;
+}
+.step-text {
+    color: var(--ctp-subtext0);
+}
+
+[data-theme="light"] .step-number {
+    background: rgba(136,57,239,.08);
+    color: var(--ctp-mauve);
 }
 
 /* ─── Timer Controls ─── */

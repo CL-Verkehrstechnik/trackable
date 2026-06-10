@@ -20,30 +20,31 @@
     {% endif %}
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px;">
+{% if profiles %}
+<div class="grid-card">
     {% for profile in profiles %}
     <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+        <div class="flex-between" style="margin-bottom:14px;">
             <div>
-                <div style="font-size:.7rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ctp-mauve); margin-bottom:5px;">{{ profile.position }}</div>
+                <div class="card-label">{{ profile.position }}</div>
                 <h2 style="font-size:1.15rem; margin:0; line-height:1.2;">{{ profile.title }}</h2>
             </div>
             <span class="badge badge-mauve" style="flex-shrink:0;">{{ profile.hourly_rate }} €/h</span>
         </div>
-        <div style="display:flex; gap:8px; font-size:.78rem; color:var(--ctp-subtext0); margin-bottom:16px; flex-wrap:wrap;">
+        <div class="flex-row" style="gap:8px; margin-bottom:16px;">
             <span>🕐 {{ profile.weekly_hours }}h / {% trans "week" %}</span>
             {% if profile.address %}<span>📍 {{ profile.address }}</span>{% endif %}
         </div>
         <div class="timer-controls" data-profile-id="{{ profile.id }}" style="margin-bottom:12px;">
             <div class="timer-display" data-profile-id="{{ profile.id }}"></div>
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                <button class="btn btn-primary btn-sm" data-action="start" style="flex:1;">▶ {% trans "Start" %}</button>
-                <button class="btn btn-warning btn-sm" data-action="pause" style="display:none;">⏸ {% trans "Pause" %}</button>
-                <button class="btn btn-success btn-sm" data-action="resume" style="display:none;">▶ {% trans "Resume" %}</button>
-                <button class="btn btn-danger btn-sm" data-action="stop" style="display:none;">⏹ {% trans "Stop" %}</button>
+            <div class="flex-row" style="gap:6px;">
+                <button class="btn btn-primary btn-sm" data-action="start" aria-label="{% trans 'Start timer for' %} {{ profile.title }}" style="flex:1;">▶ {% trans "Start" %}</button>
+                <button class="btn btn-warning btn-sm" data-action="pause" aria-label="{% trans 'Pause timer for' %} {{ profile.title }}" style="display:none;">⏸ {% trans "Pause" %}</button>
+                <button class="btn btn-success btn-sm" data-action="resume" aria-label="{% trans 'Resume timer for' %} {{ profile.title }}" style="display:none;">▶ {% trans "Resume" %}</button>
+                <button class="btn btn-danger btn-sm" data-action="stop" aria-label="{% trans 'Stop timer for' %} {{ profile.title }}" style="display:none;">⏹ {% trans "Stop" %}</button>
             </div>
         </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div class="flex-row" style="gap:8px;">
             {% if not org_timer_only %}
             <a href="/add-entry/{{ profile.id }}/" class="btn btn-primary btn-sm" style="flex:1; justify-content:center;">+ {% trans "Add time" %}</a>
             {% endif %}
@@ -52,4 +53,32 @@
     </div>
     {% endfor %}
 </div>
+{% else %}
+<!-- Empty state: onboarding for new users -->
+<div class="empty-state">
+    <div class="empty-state-icon">👋</div>
+    <h2>{% trans "Welcome to trackable!" %}</h2>
+    <p class="empty-state-text">{% trans "Start by creating your first profile. A profile represents a work project, client, or position you want to track time for." %}</p>
+    <div class="empty-state-actions">
+        <a href="/profiles/create/" class="btn btn-primary btn-lg">+ {% trans "Create profile" %}</a>
+        {% if not has_org %}
+        <a href="/org/create/" class="btn btn-secondary">🏢 {% trans "Create organization" %}</a>
+        {% endif %}
+    </div>
+    <div class="empty-state-steps">
+        <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-text">{% trans "Create a profile for your project or role" %}</div>
+        </div>
+        <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-text">{% trans "Start the timer when you begin working" %}</div>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-text">{% trans "Stop the timer when you're done — time is saved automatically" %}</div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

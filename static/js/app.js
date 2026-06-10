@@ -46,6 +46,13 @@ document.addEventListener('DOMContentLoaded', function() {
             hamburger.setAttribute('aria-expanded', String(open));
         });
 
+        hamburger.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                hamburger.click();
+            }
+        });
+
         nav.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', closeMenu);
         });
