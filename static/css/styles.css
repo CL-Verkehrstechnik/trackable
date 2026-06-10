@@ -203,6 +203,32 @@ body {
 
 .footer-sep { color: var(--ctp-overlay0); font-size: .7rem; }
 
+.field-error {
+    display: block;
+    margin-top: 4px;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--ctp-red);
+    line-height: 1.4;
+}
+
+.form-group.has-error input,
+.form-group.has-error textarea,
+.form-group.has-error select {
+    border-color: var(--ctp-red);
+    box-shadow: 0 0 0 2px rgba(231,130,132,.15);
+}
+
+.form-group.has-error label {
+    color: var(--ctp-red);
+}
+
+[data-theme="light"] .form-group.has-error input,
+[data-theme="light"] .form-group.has-error textarea,
+[data-theme="light"] .form-group.has-error select {
+    box-shadow: 0 0 0 2px rgba(210,15,57,.12);
+}
+
 /* ─── Buttons ─── */
 .btn {
     display: inline-flex;

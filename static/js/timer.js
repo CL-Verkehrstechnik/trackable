@@ -204,6 +204,12 @@
                 if (!button) return;
 
                 const action = button.getAttribute('data-action');
+
+                // Stop-Bestätigung
+                if (action === 'stop' && !confirm('Timer wirklich stoppen? Die Zeit wird gespeichert.')) {
+                    return;
+                }
+
                 handleTimerAction(profileId, action);
             });
         });

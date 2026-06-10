@@ -73,12 +73,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
+            const submitBtn = form.querySelector('.btn-form-submit, button[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Wird gespeichert...';
+                submitBtn.dataset.originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Wird gespeichert…';
             }
         });
+
+        // Re-enable submit buttons so Back button works
+        const submitBtn = form.querySelector('.btn-form-submit, button[type="submit"]');
+        if (submitBtn) {
+            window.addEventListener('pageshow', function() {
+                submitBtn.disabled = false;
+                if (submitBtn.dataset.originalText) {
+                    submitBtn.textContent = submitBtn.dataset.originalText;
+                }
+            });
+        }
     });
 
     const tableRows = document.querySelectorAll('.table tbody tr');
