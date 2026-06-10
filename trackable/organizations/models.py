@@ -12,6 +12,7 @@ class Organization(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    timer_only_mode = models.BooleanField(default=False, verbose_name="Timer only mode")
 
     class Meta:
         ordering = ["name"]

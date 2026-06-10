@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from trackable.organizations.models import Organization, OrganizationMembership
 from trackable.organizations.forms import (
     OrganizationForm,
@@ -12,7 +14,7 @@ from trackable.organizations.decorators import org_manager_required
 from trackable.profiles.models import Profile
 from trackable.core.models import Holiday
 from trackable.accounts.models import User
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 @login_required
@@ -72,6 +74,21 @@ def org_create(request):
         form = OrganizationForm()
 
     return render(request, "organizations/create.html", {"form": form})
+
+
+@login_required
+@org_manager_required
+def toggle_timer_mode(request):
+    membership = request.user.organization_membership
+    organization = membership.organization
+    organization.timer_only_mode = not organization.timer_only_mode
+    organization.save()
+    status = _("activated") if organization.timer_only_mode else _("deactivated")
+    messages.success(
+        request,
+        _('Timer-only mode %(status)s.') % {"status": status},
+    )
+    return redirect("org_dashboard")
 
 
 @login_required

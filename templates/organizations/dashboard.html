@@ -25,6 +25,35 @@
     </div>
 </div>
 
+<!-- ⚙️ Settings: Timer Mode + Weekly Calendar -->
+<div class="card" style="margin-bottom:24px; padding:20px; border:1px solid rgba(202,158,230,.15);">
+    <h3 style="color:var(--ctp-mauve); margin-bottom:16px;">⚙️ {% trans "Team Settings" %}</h3>
+    <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center;">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:.9rem; font-weight:600;">{% trans "Timer only mode" %}</span>
+            <form method="post" action="/org/toggle-timer-mode/" style="display:inline;">
+                {% csrf_token %}
+                <label class="toggle-switch">
+                    <input type="checkbox"
+                           onchange="this.form.submit()"
+                           {% if organization.timer_only_mode %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </form>
+            <span style="font-size:.82rem; color:var(--ctp-subtext0);">
+                {% if organization.timer_only_mode %}
+                    🟢 {% trans "Active – Only timer entries allowed" %}
+                {% else %}
+                    ⚪ {% trans "Inactive – Manual entries allowed" %}
+                {% endif %}
+            </span>
+        </div>
+        <div style="flex:1; min-width:150px; text-align:right;">
+            <a href="/org/weekly/" class="btn btn-primary btn-sm">📅 {% trans "Weekly Calendar" %}</a>
+        </div>
+    </div>
+</div>
+
 {% if manager_memberships %}
 <h2 style="color:var(--ctp-green); margin-bottom:16px;">{% trans "Managers" %}</h2>
 <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:30px;">

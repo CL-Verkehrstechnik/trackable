@@ -32,6 +32,10 @@ def home(request):
         )
     }
     has_org = hasattr(request.user, "organization_membership")
+    org_timer_only = (
+        has_org
+        and request.user.organization_membership.organization.timer_only_mode
+    )
     if profiles.count() == 0:
         return redirect("profile_create")
     return render(
@@ -41,6 +45,7 @@ def home(request):
             "profiles": profiles,
             "active_timers": active_timers,
             "has_org": has_org,
+            "org_timer_only": org_timer_only,
         },
     )
 
@@ -48,6 +53,13 @@ def home(request):
 @login_required
 def add_entry(request, profile_id):
     profile = get_object_or_404(Profile, pk=profile_id, user=request.user)
+
+    # Timer-only mode check
+    membership = getattr(request.user, "organization_membership", None)
+    if membership and membership.organization.timer_only_mode:
+        messages.error(request, _("Manual time entry is disabled. Please use the timer."))
+        return redirect("home")
+
     if request.method == "POST":
         form = TimeEntryForm(request.POST)
         if form.is_valid():
@@ -71,6 +83,13 @@ def add_entry(request, profile_id):
 def edit_entry(request, pk):
     entry = get_object_or_404(TimeEntry, pk=pk, profile__user=request.user)
     profile = entry.profile
+
+    # Timer-only mode check
+    membership = getattr(request.user, "organization_membership", None)
+    if membership and membership.organization.timer_only_mode:
+        messages.error(request, _("Editing time entries is disabled in timer-only mode."))
+        return redirect("monthly_table", profile_id=profile.pk, year=entry.date.year, month=entry.date.month)
+
     if request.method == "POST":
         form = TimeEntryForm(request.POST, instance=entry)
         if form.is_valid():
@@ -117,6 +136,11 @@ def monthly_table(request, profile_id, year, month):
     total_earnings = profile.get_monthly_earnings(year, month)
     total_vacation_days = sum(v.workdays for v in vacation_entries)
     month_name = datetime(year, month, 1).strftime("%B %Y")
+
+    # Show edit/delete actions?
+    membership = getattr(request.user, "organization_membership", None)
+    show_actions = not (membership and membership.organization.timer_only_mode)
+
     return render(
         request,
         "timetracking/monthly_table.html",
@@ -130,6 +154,7 @@ def monthly_table(request, profile_id, year, month):
             "total_hours": total_hours,
             "total_earnings": total_earnings,
             "total_vacation_days": total_vacation_days,
+            "show_actions": show_actions,
         },
     )
 

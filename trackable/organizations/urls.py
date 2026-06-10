@@ -14,6 +14,7 @@ urlpatterns = [
     path(
         "employees/<int:user_id>/remove/", views.employee_remove, name="employee_remove"
     ),
+    path("toggle-timer-mode/", views.toggle_timer_mode, name="toggle_timer_mode"),
     path("holidays/", views.holiday_list, name="org_holidays"),
     path("holidays/add/", views.holiday_create, name="org_holiday_add"),
     path("holidays/<int:pk>/delete/", views.holiday_delete, name="org_holiday_delete"),
