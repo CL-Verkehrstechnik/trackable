@@ -64,6 +64,11 @@ document.addEventListener('DOMContentLoaded', function() {
         card.style.animationDelay = `${index * 0.1}s`;
     });
 
+    // ── Set aria-current on active nav links ──
+    document.querySelectorAll('.nav-link.active').forEach(function(link) {
+        link.setAttribute('aria-current', 'page');
+    });
+
     const dateInput = document.querySelector('input[type="date"]');
     if (dateInput && !dateInput.value) {
         const today = new Date().toISOString().split('T')[0];

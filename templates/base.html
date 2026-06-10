@@ -20,6 +20,9 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
 
+<!-- Skip to main content -->
+<a href="#main-content" class="skip-link">{% trans "Skip to main content" %}</a>
+
 <!-- ░░ HEADER ░░ -->
 <header class="site-header">
     <div class="container">
@@ -65,12 +68,12 @@
 </header>
 
 <!-- ░░ MAIN ░░ -->
-<main class="page-main">
+<main class="page-main" id="main-content">
     {% block content_outer %}
     <div class="container">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
             {% endfor %}
         {% endif %}
 

@@ -646,6 +646,44 @@ hr, .divider { border: none; border-top: 1px solid var(--ctp-overlay0); margin: 
     .btn-text-hide { display: none; }
 }
 
+/* ─── Skip Link ─── */
+.skip-link {
+    position: fixed;
+    top: -100%;
+    left: 16px;
+    z-index: 10000;
+    padding: 12px 24px;
+    background: var(--ctp-mauve);
+    color: #fff;
+    font-weight: 700;
+    font-size: .9rem;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    text-decoration: none;
+    transition: top .2s ease;
+}
+.skip-link:focus {
+    top: 0;
+    color: #fff;
+    text-decoration: none;
+    outline: 3px solid var(--ctp-text);
+    outline-offset: 2px;
+}
+
+/* ─── Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+[data-theme="light"] .skip-link {
+    background: var(--ctp-mauve);
+    color: #fff;
+}
+
 /* ═══════════════════════════════════════════
    Landing Page
    ═══════════════════════════════════════════ */
