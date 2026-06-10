@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Weekly Calendar" %} – {{ organization.name }}{% endblock %}
+{% block nav_org %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.weekly-grid {
+    min-width: 750px;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+.weekly-grid th,
+.weekly-grid td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--ctp-overlay0);
+    vertical-align: top;
+    font-size: .85rem;
+}
+.weekly-grid thead th {
+    position: sticky;
+    top: 0;
+    background: var(--ctp-mantle);
+    z-index: 3;
+    font-size: .78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--ctp-mauve);
+    border-bottom: 2px solid var(--ctp-overlay0);
+    padding: 12px 8px;
+}
+.weekly-grid .name-cell {
+    position: sticky;
+    left: 0;
+    background: var(--ctp-mantle);
+    z-index: 2;
+    font-weight: 600;
+    text-align: left;
+    min-width: 140px;
+    border-right: 1px solid var(--ctp-overlay0);
+}
+.weekly-grid .today {
+    background: rgba(202,158,230,.06);
+}
+.weekly-grid .today .name-cell {
+    background: rgba(202,158,230,.08);
+}
+.weekly-grid tbody tr:hover td {
+    background: rgba(202,158,230,.03);
+}
+.weekly-grid tbody tr:hover .name-cell {
+    background: rgba(202,158,230,.06);
+}
+.entry-chip {
+    background: rgba(202,158,230,.10);
+    border: 1px solid rgba(202,158,230,.18);
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    font-size: .74rem;
+    cursor: grab;
+    transition: transform .15s, box-shadow .15s;
+    user-select: none;
+}
+.entry-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0,0,0,.2);
+}
+.entry-chip:active {
+    cursor: grabbing;
+}
+.entry-chip .time {
+    font-weight: 600;
+    color: var(--ctp-text);
+}
+.entry-chip .profile {
+    color: var(--ctp-subtext0);
+    font-size: .68rem;
+}
+.entry-chip .hours {
+    color: var(--ctp-mauve);
+    font-weight: 700;
+    font-size: .7rem;
+}
+.entry-chip.sortable-ghost {
+    opacity: .4;
+    background: var(--ctp-mauve) !important;
+}
+.entry-chip.sortable-chosen {
+    background: rgba(202,158,230,.25);
+    border-color: var(--ctp-mauve);
+}
+.day-total {
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--ctp-mauve);
+    padding-top: 4px;
+    border-top: 1px solid rgba(202,158,230,.12);
+    margin-top: 4px;
+}
+.week-total {
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--ctp-green);
+}
+.weekly-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.weekly-nav .week-label {
+    font-weight: 700;
+    font-size: 1rem;
+    min-width: 200px;
+    text-align: center;
+}
+.empty-week {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ctp-subtext0);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    {% csrf_token %}
+
+    <!-- Header + Navigation -->
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:24px;">
+        <div>
+            <a href="/org/" class="btn btn-secondary btn-sm">← {% trans "Back" %}</a>
+        </div>
+        <div class="weekly-nav">
+            <a href="{{ prev_url }}" class="btn btn-secondary btn-sm">←</a>
+            <span class="week-label">
+                {% trans "Week" %} {{ week }} – {{ monday|date:"d.m." }}–{{ sunday|date:"d.m.Y" }}
+            </span>
+            <a href="{{ next_url }}" class="btn btn-secondary btn-sm">→</a>
+            <a href="{{ today_url }}" class="btn btn-primary btn-sm">{% trans "Today" %}</a>
+        </div>
+        <div>
+            {% if timer_only %}
+            <span class="badge badge-peach">🕐 {% trans "Timer only" %}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if week_data %}
+    <!-- Grid -->
+    <div style="overflow-x:auto; margin-bottom:20px;">
+        <table class="weekly-grid" data-week-dates='[{% for d in week_dates %}"{{ d|date:'Y-m-d' }}"{% if not forloop.last %},{% endif %}{% endfor %}]'>
+            <thead>
+                <tr>
+                    <th class="name-cell">{% trans "Employee" %}</th>
+                    {% for d in week_dates %}
+                    <th class="col-date">
+                        <div>{{ d|date:"D" }}</div>
+                        <div style="font-size:.72rem; font-weight:400; color:var(--ctp-subtext0);">{{ d|date:"d.m." }}</div>
+                    </th>
+                    {% endfor %}
+                    <th style="color:var(--ctp-green);">∑</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for wd in week_data %}
+                <tr>
+                    <td class="name-cell">
+                        <div style="font-weight:600;">{{ wd.user.get_full_name|default:wd.user.username }}</div>
+                        <div style="font-size:.72rem; color:var(--ctp-subtext0);">{{ wd.membership.get_role_display }}</div>
+                    </td>
+                    {% for cell in wd.day_cells %}
+                    <td class="col-date" data-col="{{ forloop.counter0 }}">
+                        <div class="entries-container" data-col="{{ forloop.counter0 }}">
+                            {% if cell.entries %}
+                            {% for e in cell.entries %}
+                            <div class="entry-chip" data-entry-id="{{ e.entry.id }}">
+                                <div class="time">{{ e.entry.start_time|time:"H:i" }}–{{ e.entry.end_time|time:"H:i" }}</div>
+                                <div class="profile">{{ e.profile_title }}</div>
+                                <div class="hours">{{ e.entry.hours_worked|floatformat:1 }}h</div>
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="day-total">{{ cell.total|floatformat:1 }}h</div>
+                    </td>
+                    {% endfor %}
+                    <td class="week-total">{{ wd.total_weekly }}h</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Legend -->
+    <div style="display:flex; gap:20px; font-size:.78rem; color:var(--ctp-subtext0); flex-wrap:wrap; padding-top:12px; border-top:1px solid var(--ctp-overlay0);">
+        <span>💡 {% trans "Entries are draggable between days (manager only)." %}</span>
+    </div>
+
+    {% else %}
+    <div class="empty-week">
+        <div style="font-size:2.5rem; margin-bottom:16px;">📅</div>
+        <h2>{% trans "No data for this week" %}</h2>
+        <p style="color:var(--ctp-subtext0);">{% trans "There are no time entries in this week." %}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+(function() {
+    'use strict';
+
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                    document.cookie.split('; ').find(function(row) {
+                        return row.startsWith('csrftoken=');
+                    })?.split('=')[1];
+
+    var isManager = {{ is_manager|lower }};
+    var timerOnly = {{ timer_only|lower }};
+
+    // Parse week dates from table data attribute
+    var table = document.querySelector('.weekly-grid');
+    var weekDates = JSON.parse(table.getAttribute('data-week-dates'));
+    var todayStr = new Date().toISOString().slice(0, 10);
+
+    // Assign data-date to cells and containers based on column index
+    document.querySelectorAll('.col-date').forEach(function(el) {
+        var col = parseInt(el.getAttribute('data-col'), 10) || 0;
+        var dateStr = weekDates[col];
+        el.setAttribute('data-date', dateStr);
+        if (dateStr === todayStr) {
+            el.classList.add('today');
+        }
+    });
+    document.querySelectorAll('.entries-container').forEach(function(el) {
+        var col = parseInt(el.getAttribute('data-col'), 10) || 0;
+        el.setAttribute('data-date', weekDates[col]);
+    });
+
+    // Drag & Drop only for managers, not in timer-only mode
+    if (isManager && !timerOnly) {
+        document.querySelectorAll('.entries-container').forEach(function(container) {
+            if (!container) return;
+            new Sortable(container, {
+                group: 'weekly-grid',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                onEnd: function(evt) {
+                    var entryId = evt.item.getAttribute('data-entry-id');
+                    var newDate = evt.to.getAttribute('data-date');
+
+                    if (!entryId || !newDate) return;
+                    if (evt.from === evt.to && evt.oldIndex === evt.newIndex) return;
+
+                    var formData = new URLSearchParams();
+                    formData.append('new_date', newDate);
+
+                    fetch('/org/weekly/move-entry/' + entryId + '/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: formData.toString(),
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.status === 'ok') {
+                            location.reload();
+                        } else {
+                            console.error('Move failed:', data.error);
+                            location.reload();
+                        }
+                    })
+                    .catch(function() {
+                        location.reload();
+                    });
+                }
+            });
+        });
+    }
+})();
+</script>
+{% endblock %}

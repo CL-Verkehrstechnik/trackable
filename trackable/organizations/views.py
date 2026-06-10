@@ -15,6 +15,8 @@ from trackable.profiles.models import Profile
 from trackable.core.models import Holiday
 from trackable.accounts.models import User
 from datetime import datetime, timedelta
+from django.utils import timezone as tz
+import calendar
 
 
 @login_required
@@ -232,6 +234,117 @@ def employee_profile_detail(request, user_id, profile_id):
             "available_months": available_months,
         },
     )
+
+
+@login_required
+def org_weekly_calendar(request):
+    membership = getattr(request.user, "organization_membership", None)
+    if not membership:
+        return redirect("org_create")
+
+    organization = membership.organization
+    is_manager = membership.is_manager
+
+    # ISO-Kalenderwoche aus URL
+    today = tz.now().date()
+    iso = today.isocalendar()
+    year = int(request.GET.get("year", iso[0]))
+    week = int(request.GET.get("week", iso[1]))
+
+    # Wochen-Montag & -Sonntag
+    try:
+        monday = datetime.fromisocalendar(year, week, 1).date()
+    except (ValueError, TypeError):
+        monday = today - timedelta(days=today.weekday())
+        year, week, _ = monday.isocalendar()
+
+    sunday = monday + timedelta(days=6)
+    week_dates = [monday + timedelta(days=i) for i in range(7)]
+
+    # Alle Mitglieder holen
+    memberships = organization.memberships.select_related("user").all()
+
+    week_data = []
+    for m in memberships:
+        user = m.user
+        day_cells = [{"entries": [], "total": 0.0} for _ in range(7)]
+
+        profiles = user.profiles.all()
+        for profile in profiles:
+            day_entries = profile.time_entries.filter(
+                date__gte=monday, date__lte=sunday
+            ).order_by("date", "start_time")
+
+            for entry in day_entries:
+                day_idx = entry.date.weekday()  # 0=Mon … 6=Sun
+                day_cells[day_idx]["entries"].append({
+                    "entry": entry,
+                    "profile_title": profile.title,
+                })
+                day_cells[day_idx]["total"] += float(entry.hours_worked)
+
+        total_weekly = sum(cell["total"] for cell in day_cells)
+
+        week_data.append({
+            "membership": m,
+            "user": user,
+            "day_cells": day_cells,
+            "total_weekly": round(total_weekly, 2),
+        })
+
+    # Vorherige / Nächste Woche
+    prev_monday = monday - timedelta(days=7)
+    next_monday = monday + timedelta(days=7)
+    prev_iso = prev_monday.isocalendar()
+    next_iso = next_monday.isocalendar()
+    today_iso = today.isocalendar()
+
+    return render(
+        request,
+        "organizations/weekly_calendar.html",
+        {
+            "organization": organization,
+            "is_manager": is_manager,
+            "week_data": week_data,
+            "year": year,
+            "week": week,
+            "monday": monday,
+            "sunday": sunday,
+            "week_dates": week_dates,
+            "prev_url": f"?year={prev_iso[0]}&week={prev_iso[1]}",
+            "next_url": f"?year={next_iso[0]}&week={next_iso[1]}",
+            "today_url": f"?year={today_iso[0]}&week={today_iso[1]}",
+            "timer_only": organization.timer_only_mode,
+        },
+    )
+
+
+@login_required
+@org_manager_required
+def move_entry(request, entry_id):
+    from trackable.timetracking.models import TimeEntry
+
+    entry = get_object_or_404(TimeEntry, pk=entry_id)
+    membership = request.user.organization_membership
+
+    # Prüfen: entry gehört zur gleichen Organisation
+    entry_org = getattr(
+        entry.profile.user, "organization_membership", None
+    )
+    if not entry_org or entry_org.organization != membership.organization:
+        return JsonResponse({"error": _("Entry does not belong to your organization.")}, status=403)
+
+    new_date_str = request.POST.get("new_date")
+    if not new_date_str:
+        return JsonResponse({"error": _("new_date is required.")}, status=400)
+
+    try:
+        entry.date = datetime.strptime(new_date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return JsonResponse({"error": _("Invalid date format.")}, status=400)
+
+    entry.save()
+    return JsonResponse({"status": "ok"})
 
 
 @login_required

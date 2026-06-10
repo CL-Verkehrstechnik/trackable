@@ -14,6 +14,8 @@ urlpatterns = [
     path(
         "employees/<int:user_id>/remove/", views.employee_remove, name="employee_remove"
     ),
+    path("weekly/", views.org_weekly_calendar, name="org_weekly_calendar"),
+    path("weekly/move-entry/<int:entry_id>/", views.move_entry, name="move_entry"),
     path("toggle-timer-mode/", views.toggle_timer_mode, name="toggle_timer_mode"),
     path("holidays/", views.holiday_list, name="org_holidays"),
     path("holidays/add/", views.holiday_create, name="org_holiday_add"),
