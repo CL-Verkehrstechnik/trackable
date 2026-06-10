@@ -225,6 +225,7 @@
     }
 
     setInterval(() => {
+        // Nur aktualisieren wenn Timer laufen
         timers.forEach((timerData, profileId) => {
             if (timerData.hasTimer && !timerData.isPaused && timerData.lastUpdate > 0) {
                 updateTimerDisplay(profileId);
@@ -233,9 +234,13 @@
     }, 1000);
 
     setInterval(() => {
-        timers.forEach((_, profileId) => {
-            fetchTimerStatus(profileId);
-        });
+        // Nur pollende Timer wenn welche aktiv sind
+        const hasActiveTimers = Array.from(timers.values()).some(t => t.hasTimer);
+        if (hasActiveTimers) {
+            timers.forEach((_, profileId) => {
+                fetchTimerStatus(profileId);
+            });
+        }
     }, POLL_INTERVAL);
 
     if (document.readyState === 'loading') {
