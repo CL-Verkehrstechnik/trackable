@@ -199,7 +199,11 @@
 
     <!-- Legend -->
     <div style="display:flex; gap:20px; font-size:.78rem; color:var(--ctp-subtext0); flex-wrap:wrap; padding-top:12px; border-top:1px solid var(--ctp-overlay0);">
-        <span>💡 {% trans "Entries are draggable between days (manager only)." %}</span>
+        {% if is_manager and not timer_only %}
+        <span>💡 {% trans "Entries are draggable between days (manager only). Drag an entry to move it to a different day." %}</span>
+        {% else %}
+        <span>💡 {% trans "View your team's time entries for this week. Managers can drag entries between days." %}</span>
+        {% endif %}
     </div>
 
     {% else %}

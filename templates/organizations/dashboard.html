@@ -30,7 +30,9 @@
     <h3 style="color:var(--ctp-mauve); margin-bottom:16px;">⚙️ {% trans "Team Settings" %}</h3>
     <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center;">
         <div style="display:flex; align-items:center; gap:12px;">
-            <span style="font-size:.9rem; font-weight:600;">{% trans "Timer only mode" %}</span>
+            <span style="font-size:.9rem; font-weight:600;">{% trans "Timer only mode" %}
+                <span class="help-icon" title="{% trans "When active, employees can only record time via the start/stop timer. The 'Add time' button and manual entry form are hidden." %}" tabindex="0">ⓘ</span>
+            </span>
             <form method="post" action="/org/toggle-timer-mode/" style="display:inline;">
                 {% csrf_token %}
                 <label class="toggle-switch">
