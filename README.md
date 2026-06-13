@@ -359,10 +359,10 @@ trackable. supports both individual freelancers and small businesses through its
 
 Any user can create an organization at `/org/create/` and become its **manager**. Managers can then:
 
-1. **Add employees** — Create accounts with a username, email, name, and temporary password. Employees are active immediately and can log in right away. A profile is auto-created for them with sensible defaults.
+1. **Add employees** — Create accounts with a username, email, name, and temporary password. When creating an employee, managers can set the weekly working hours as well as optional contract start and end dates (e.g. for fixed-term contracts). Employees are active immediately and can log in right away. A profile is auto-created for them with the specified settings.
 2. **View the dashboard** — See all employees at a glance with quick stats including their monthly target hours, actual hours, and balance (Zeitkonto).
 3. **Inspect employee data** — Click into any employee to view their profiles, monthly hours, target hours, time account balance, and earnings. Drill down into a specific month to see a read-only table of time entries, vacation, and totals.
-4. **Adjust target hours** — Override the weekly target hours (Soll-Stunden) per employee directly from the profile detail page.
+4. **Adjust target hours & contract dates** — Override the weekly target hours (Soll-Stunden) per employee directly from the profile detail page. Contract start and end dates can also be changed afterwards — the time account calculation respects both fields (working days before the start date or after the end date are excluded from target hour calculation).
 5. **Remove employees** — Remove an employee from the organization. Their account and data remain intact.
 6. **Company Branding** — Customize the look and feel at `/org/branding/`: replace the navbar logo, favicon, Apple Touch Icon, and set primary/accent colors or custom CSS for your organization.
 7. **Team Calendar** — View and manage a shared weekly calendar at `/org/team-calendar/`. All members can create, edit, and delete color-coded events, and drag-and-drop them between days/times.
@@ -399,11 +399,11 @@ Each profile supports a private **Internal notes** field — visible only to the
 
 Each employee profile automatically calculates a monthly time account:
 
-- **Target hours (Soll-Stunden)**: Derived from the profile's weekly working hours (`weekly_hours`) or an optional per-employee override (`weekly_target_hours`) set by managers.
+- **Target hours (Soll-Stunden)**: Derived from the profile's weekly working hours (`weekly_hours`) or an optional per-employee override (`weekly_target_hours`) set by managers. If the profile has a **contract start date**, only working days on or after that date are counted; if a **contract end date** is set, only working days up to that date are counted. This allows accurate pro-rata target calculations for employees who start or leave mid-month.
 - **Actual hours**: Sum of all time entries and vacation workdays in the month.
 - **Balance**: Actual hours minus target hours — shown in green (positive) or red (negative) directly on the profile and employee detail pages.
 
-Managers can override the weekly target hours per employee from the employee profile detail page.
+Managers can override the weekly target hours per employee from the employee profile detail page. Contract start and end dates are also editable there — set during employee creation and changeable at any time.
 
 ### Company Branding
 
