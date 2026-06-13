@@ -113,6 +113,15 @@ def employee_create(request):
                 user=user,
                 role="employee",
             )
+            # Automatisch ein Standard-Profil für den Mitarbeiter anlegen
+            from trackable.profiles.models import Profile
+            Profile.objects.create(
+                user=user,
+                title=_("Employee at %(org)s") % {"org": organization.name},
+                position=_("Employee"),
+                weekly_hours=40,
+                hourly_rate=0,
+            )
             messages.success(
                 request,
                 _('Employee "%(name)s" created successfully!')
