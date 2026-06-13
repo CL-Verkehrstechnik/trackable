@@ -13,8 +13,8 @@ Sechs Arbeitspakete:
 1. ✅ **Shared Weekly Calendar (Team-Kalender)** – Abgeschlossen
 2. ✅ **Enhanced Role-Based Timer Mode** – Abgeschlossen
 3. ✅ **Zeitkonto (Time Account)** – Abgeschlossen
-4. 📋 **PDF-Export mit Native Share** – Web Share API für mobile Geräte (Plan fertig)
-5. ⏳ **Mobile UI/UX Audit** – Durchgehendes mobiles Design-Review
+4. ✅ **PDF-Export mit Native Share** – Abgeschlossen
+5. 📋 **Mobile UI/UX Audit** – Detailplan fertig
 6. 📋 **Company Branding (White-Label)** – Logo, Favicon, Farben, Custom CSS pro Organisation
 
 ---
@@ -170,7 +170,7 @@ Pro Profil wird für jeden Monat ein Zeitkonto berechnet:
 
 *(Siehe Commits `43aa6ef` + `328b63d` für die vollständige Implementierung)*
 
-## Phase 4: PDF-Export mit Native Share ⏳
+## Phase 4: PDF-Export mit Native Share ✅
 
 ### Ziel
 PDF-Export auf mobilen Geräten soll das native **Share-Sheet** des Betriebssystems öffnen (iOS/Android), statt die PDF direkt im Browser anzuzeigen. So kann der Nutzer die PDF teilen (Mail, WhatsApp, AirDrop, …) oder speichern.
@@ -329,13 +329,238 @@ def test_api_export_pdf_wrong_user_404(self):
 | 5 | Tests | `tests/` |
 | 6 | Test-Suite | `make test` |
 
-### Phase 5: Mobile UI/UX Audit
-- Touch-Targets (min 44px), Safe Areas, Tabellen-Scroll
-- Calendar-Grid auf Mobile testen
+## Phase 5: Mobile UI/UX Audit 📋
+
+### Ziel
+Die App auf mobilen Geräten (Smartphones < 480px Breite) durchgehend benutzbar machen:
+
+- Touch-Targets ≥ 44×44px (Apple HIG / Material Design Guideline)
+- Keine abgeschnittenen Inhalte, kein Horizontal-Scroll der Seite (nur Tabellen)
+- Ausreichende Schriftgrößen (≥ 14px für Fließtext)
+- Safe-Area-Padding für Notch/Home-Indicator (iOS)
+- Kalender, Timer und Tabellen auf kleinem Bildschirm bedienbar
 
 ---
 
-*Dieses Dokument wird während der Implementierung aktualisiert.*
+### Audit-Ergebnisse (Juni 2026)
+
+| Bereich | Status | Details |
+|---------|--------|--------|
+| Viewport Meta | ✅ | `width=device-width, initial-scale=1.0` in `base.html` |
+| Responsive Breakpoints | ⚠️ | Nur 480px, 640px, 768px – fehlt 360px (kleine Geräte) |
+| Touch-Targets Standard Buttons | ❌ | `.btn` = ~38px Höhe (≥44px nötig) |
+| Touch-Targets btn-sm | ❌ | `.btn-sm` = ~30px Höhe – viel zu klein, aber überall verwendet |
+| Timer-Buttons (Start/Stopp) | ❌ | `btn-sm` ~30px – kritisch, da häufigster Touch-Use-Case |
+| Table Horizontal-Scroll | ✅ | `overflow-x: auto` auf allen Tabellen-Wrappern |
+| Form Inputs | ✅ | `padding: 11px 15px` = ~37px – grenzwertig aber OK |
+| Schriftgrößen | ❌ | `.card-label` 11.2px, `.badge` 12px, Kalender-Events 10.4px |
+| Safe Areas | ❌ | Kein `env(safe-area-inset-*)` Padding |
+| Calendar Mobile | ⚠️ | 640px Breakpoint mit 48px Cells, aber Events 10.4px Schrift |
+| Dashboard Employee Cards | ❌ | `btn-sm` für View/Remove |
+| Profile Detail | ⚠️ | `btn-sm` für Edit/Delete |
+| Hamburger Menu | ✅ | Funktioniert auf mobil (fixed overlay) |
+| Landing Page | ✅ | Eigene Breakpoints (600px, 900px) |
+
+---
+
+### Ausführungsplan
+
+#### Schritt 1: Touch-Targets auf ≥ 44px vergrößern
+
+**Datei:** `static/css/styles.css`
+
+- `.btn` padding von `9px 20px` auf `11px 22px` erhöhen (→ ~42px Höhe, plus border ≈ 44px)
+- `.btn-sm` padding von `6px 13px` auf `9px 16px` (→ ~38px, aber Kombination oft in `flex:1`-Buttons)
+- `.btn-sm` auf mobilen Viewports (≤ 480px) per Media Query auf `padding: 10px 18px; font-size: .9rem` hochstufen
+- `.btn-lg` bleibt (`13px 30px` ≈ 47px – OK)
+
+```css
+@media (max-width: 480px) {
+    .btn {
+        padding: 11px 22px;
+        min-height: 44px;
+    }
+    .btn-sm {
+        padding: 10px 18px;
+        font-size: .9rem;
+        min-height: 44px;
+    }
+}
+```
+
+**Optional:** `min-height: 44px` auf alle Button-Klassen setzen, damit jede zukünftige Button-Variante automatisch die Mindestgröße einhält.
+
+#### Schritt 2: Timer-Buttons optimieren
+
+**Datei:** `templates/timetracking/home.html`
+
+- Timer Start/Pause/Resume/Stop von `btn-sm` auf `btn` ändern (oder `btn` mit `flex:1` + `min-height: 44px`)
+- Zusätzlich CSS-Regel, dass Timer-Buttons mindestens 44px hoch sind:
+
+```css
+.timer-controls .btn { min-height: 48px; }
+```
+
+#### Schritt 3: Schriftgrößen anpassen
+
+**Datei:** `static/css/styles.css`
+
+| Selektor | Alt | Neu (Mobile) |
+|----------|-----|-------------|
+| `.card-label` | `.7rem` (11.2px) | `.75rem` (12px) |
+| `.badge` | `.75rem` (12px) | `.8rem` (12.8px) |
+| `.footer-link, .footer-copy` | `.78rem` (12.5px) | `.82rem` (13.1px) |
+| `.table th` | `.74rem` (11.8px) | `.8rem` (12.8px) |
+| `.alert` | `.87rem` (13.9px) | `.9rem` (14.4px) |
+
+**Alternativ:** Per Media-Query nur auf Mobile hochsetzen:
+
+```css
+@media (max-width: 480px) {
+    body { font-size: 16px; }  /* aktuell 15px, auf 16px für bessere Lesbarkeit */
+}
+```
+
+#### Schritt 4: Safe Areas für iOS-Notch/Home-Indicator
+
+**Datei:** `static/css/styles.css`
+
+```css
+/* Safe Areas für iOS-Notch und Home-Indicator */
+.site-header {
+    padding-left: max(18px, env(safe-area-inset-left));
+    padding-right: max(18px, env(safe-area-inset-right));
+}
+
+.page-main {
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-bottom: max(40px, env(safe-area-inset-bottom));
+}
+
+.site-footer {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding-left: max(14px, env(safe-area-inset-left));
+        padding-right: max(14px, env(safe-area-inset-right));
+    }
+}
+```
+
+#### Schritt 5: Kalender für kleine Displays optimieren
+
+**Datei:** `templates/organizations/team_calendar.html` (im `<style>`-Block)
+
+- Event-Schrift von `.65rem` (10.4px) auf `.72rem` (11.5px) erhöhen
+- 48px Cells → 52px für bessere Touch-Ziele
+- Buttons in der Navigation auf mindestens 44px bringen
+- Mobile Navigation: Pfeil-Buttons von `btn-sm` auf normale Größe
+
+```css
+@media (max-width: 640px) {
+    .time-slot-label,
+    .time-slot-cell {
+        height: 52px;
+    }
+    .day-col {
+        min-width: 110px;
+    }
+    .cal-event {
+        font-size: .72rem;
+        padding: 3px 5px;
+    }
+    .team-cal-nav .btn {
+        min-height: 44px;
+        padding: 10px 16px;
+    }
+}
+
+/* Zusätzlich: 360px Breakpoint für sehr kleine Geräte */
+@media (max-width: 360px) {
+    .day-col {
+        min-width: 90px;
+    }
+    .cal-event {
+        font-size: .65rem;
+        padding: 2px 3px;
+    }
+    .time-slot-label,
+    .time-slot-cell {
+        height: 44px;
+    }
+}
+```
+
+#### Schritt 6: Dashboard & Employee-Karten auf Mobile
+
+**Datei:** `templates/organizations/dashboard.html`
+
+- View/Remove Buttons von `btn-sm` auf `btn` hochstufen (oder per CSS `min-height: 44px`)
+- `auto-fill`-Grids (`minmax(200px, 1fr)`) werden auf kleinen Screens automatisch Single-Column
+- Team-Settings Bereich: Dropdown und Buttons in eigener Zeile (aktuell `flex-wrap: wrap` – funktioniert)
+
+#### Schritt 7: Profile-Detail Buttons
+
+**Datei:** `templates/profiles/detail.html`
+
+- Edit/Delete von `btn-sm` auf normale `btn`-Größe (durch Schritt 1 bereits abgedeckt)
+- „Log time“-Button bereits `btn` mit großen Padding – OK
+
+#### Schritt 8: Formulare auf Mobile
+
+**Datei:** `static/css/styles.css`
+
+- Input/Select/Textarea bereits `width: 100%` – gut
+- `padding: 11px 15px` gibt ~37px Höhe – grenzwertig, per Media-Query auf 13px padding erhöhen:
+
+```css
+@media (max-width: 480px) {
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        padding: 13px 16px;
+        font-size: 1rem;
+    }
+}
+```
+
+#### Schritt 9: Tests
+
+Manuelles Test-Script (keine Unit-Tests für UI):
+
+```bash
+# iPhone SE (375×667) – minimal supported width
+# iPhone 14 Pro (390×844) – typical modern device
+# Galaxy S22 (360×780) – Android equivalent
+# iPad Mini (768×1024) – tablet
+```
+
+Checkliste pro Seite:
+- [ ] Kein horizontales Scrollen der gesamten Seite
+- [ ] Alle Buttons ≥ 44px Höhe
+- [ ] Formularfelder voller Breite
+- [ ] Timer-Buttons gut tippbar
+- [ ] Kalender-Events lesbar
+- [ ] Tabellen horizontal scrollbar
+- [ ] Kein Text abgeschnitten
+- [ ] Hamburger-Menü öffnet/schließt
+
+#### Umsetzungsreihenfolge
+
+| # | Schritt | Dateien |
+|---|---------|--------|
+| 1 | Touch-Targets CSS | `static/css/styles.css` |
+| 2 | Timer-Buttons größer | `templates/timetracking/home.html` |
+| 3 | Schriftgrößen Mobile | `static/css/styles.css` |
+| 4 | Safe Areas | `static/css/styles.css` |
+| 5 | Kalender Mobile | `templates/organizations/team_calendar.html` |
+| 6 | Dashboard-Karten | `templates/organizations/dashboard.html` |
+| 7 | Profile-Detail | `templates/profiles/detail.html` |
+| 8 | Form Inputs Mobile | `static/css/styles.css` |
+| 9 | Manuelle Prüfung | Browser DevTools |
 
 ---
 
