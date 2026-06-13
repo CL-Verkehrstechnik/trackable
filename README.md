@@ -29,34 +29,38 @@
 - **📱 PWA** — Installable on iOS, Android, and desktop directly from the browser
 - **⏰ Time tracking** — Quickly log start time, end time, breaks, and optional activity notes per day
 - **⏱ Live Timer** — Start/Pause/Resume/Stop timer with one click; automatically creates time entries
+- **⏱ Timer-only mode** — Restrict employees to timer-only tracking (optional per organization); managers retain full CRUD access
 - **🗂 Multiple profiles** — Separate tracking for different clients or jobs, with edit and delete support
-- **📊 Monthly overview** — Automatic calculation of total hours and earnings per profile
+- **📊 Monthly overview** — Automatic calculation of total hours, target hours (Soll-Stunden), and running balance (Zeitkonto) per profile
 
 ### Exports
-- **📄 PDF export** — Export monthly tables as landscape PDFs, fully translated (EN/DE)
+- **📄 PDF export** — Export monthly tables as landscape PDFs, fully translated (EN/DE); uses Web Share API on mobile devices to trigger native share sheet (AirDrop, Messages, Mail) instead of directly opening the PDF
 - **📊 CSV export** — Export monthly time entries as semicolon-separated CSV, Excel-compatible (BOM)
 
 ### Business features
 - **🏖 Vacation tracking** — Log vacation periods per profile; workdays are calculated automatically (Mon–Fri, excluding public holidays)
 - **🎌 Public holiday management** — Configure public holidays via Django Admin; they are automatically excluded from vacation workday counts
+- **💰 Time account (Zeitkonto)** — Automatic monthly calculation of target hours (Soll-Stunden) vs. actual hours with a running plus/minus balance; configurable weekly target hours per employee
 - **🔒 Internal profile notes** — Attach private notes to each profile (e.g. contract details, department, payroll hints) — visible only to the account owner
 - **📝 Time entry notes** — Add a short activity description to each time entry
 
 ### Organizations & teams
 - **🏢 Organizations** — Create an organization and add employees as a manager
-- **👤 Employee accounts** — Managers set a temporary password; employees log in immediately — no email confirmation needed
-- **📊 Manager dashboard** — View all employees' profiles, monthly hours, and earnings at a glance
-- **👁 Read-only oversight** — Managers see employee time entries, vacation, and earnings without edit/delete controls
+- **👤 Employee accounts** — Managers set a temporary password; employees log in immediately — no email confirmation needed; Profile is auto-created upon adding an employee
+- **📊 Manager dashboard** — View all employees' profiles, monthly hours, target hours, and balance at a glance
+- **👁 Read-only oversight** — Managers see employee time entries, vacation, target hours, and earnings without edit/delete controls
 - **🔑 Role-based access** — Two roles: manager (oversight + employee management) and employee (personal tracking)
+- **📅 Team calendar** — Shared weekly calendar per organization; all members can view, create, and edit events with color-coding, drag-and-drop via SortableJS, and an inline modal editor
+- **🎨 Company branding (White-Label)** — Replaceable logo in the navbar, favicon, Apple Touch Icon, primary/accent colors, and custom CSS per organization — configured by managers at `/org/branding/`
 
 ### System
 - **🔐 Registration with email confirmation** — New users register and confirm via email link; accounts stay inactive until confirmed
 - **📧 Email test tool** — Send test emails from the admin panel (`/admin/email-test/`) to verify SMTP configuration; shows current settings and error details
-- **📧 Monthly email reports** — Automated summary email on the last day of each month
+- **📧 Monthly email reports** — Automated summary email on the last day of each month (includes PDF attachment)
 - **🔐 Authentication** — Login, password reset, and email confirmation
 - **💾 Automatic backups** — Weekly SQLite database backups
 - **🌍 English & German** — Auto-detects browser language; English by default, German when device locale is `de`
-- **🎨 Catppuccin design** — Clean, mobile-first dark theme
+- **🎨 Catppuccin design** — Clean, mobile-first dark theme with company branding support
 
 ---
 
@@ -355,14 +359,26 @@ trackable. supports both individual freelancers and small businesses through its
 
 Any user can create an organization at `/org/create/` and become its **manager**. Managers can then:
 
-1. **Add employees** — Create accounts with a username, email, name, and temporary password. Employees are active immediately and can log in right away.
-2. **View the dashboard** — See all employees at a glance with quick stats.
-3. **Inspect employee data** — Click into any employee to view their profiles, monthly hours, and earnings. Drill down into a specific month to see a read-only table of time entries, vacation, and totals.
-4. **Remove employees** — Remove an employee from the organization. Their account and data remain intact.
+1. **Add employees** — Create accounts with a username, email, name, and temporary password. Employees are active immediately and can log in right away. A profile is auto-created for them with sensible defaults.
+2. **View the dashboard** — See all employees at a glance with quick stats including their monthly target hours, actual hours, and balance (Zeitkonto).
+3. **Inspect employee data** — Click into any employee to view their profiles, monthly hours, target hours, time account balance, and earnings. Drill down into a specific month to see a read-only table of time entries, vacation, and totals.
+4. **Adjust target hours** — Override the weekly target hours (Soll-Stunden) per employee directly from the profile detail page.
+5. **Remove employees** — Remove an employee from the organization. Their account and data remain intact.
+6. **Company Branding** — Customize the look and feel at `/org/branding/`: replace the navbar logo, favicon, Apple Touch Icon, and set primary/accent colors or custom CSS for your organization.
+7. **Team Calendar** — View and manage a shared weekly calendar at `/org/team-calendar/`. All members can create, edit, and delete color-coded events, and drag-and-drop them between days/times.
 
 Employees see a minimal org page showing their membership. Their personal time-tracking experience (profiles, entries, exports) is unchanged.
 
 > A user can belong to at most one organization. Individual users without an organization see no org UI at all — the app works exactly as before.
+
+### Time tracking modes
+
+Organizations can operate in two modes, configured at the org dashboard:
+
+| Mode | Description |
+|------|-------------|
+| **Classic** (default) | All users can manually add, edit, and delete time entries |
+| **Restricted (Timer-only)** | Employees can only use the live timer (start/pause/stop); manual entry add/edit is blocked. Managers retain full CRUD access to all time entries. |
 
 ### Registration flow
 
@@ -379,11 +395,47 @@ Configure country- or region-specific public holidays once via Django Admin (`/a
 
 Each profile supports a private **Internal notes** field — visible only to the logged-in owner. Use it for contract details, department assignments, payroll notes, or any other context that should travel with the profile but not appear in exports.
 
+### Time account (Zeitkonto)
+
+Each employee profile automatically calculates a monthly time account:
+
+- **Target hours (Soll-Stunden)**: Derived from the profile's weekly working hours (`weekly_hours`) or an optional per-employee override (`weekly_target_hours`) set by managers.
+- **Actual hours**: Sum of all time entries and vacation workdays in the month.
+- **Balance**: Actual hours minus target hours — shown in green (positive) or red (negative) directly on the profile and employee detail pages.
+
+Managers can override the weekly target hours per employee from the employee profile detail page.
+
+### Company Branding
+
+Managers can customize the look and feel of trackable for their organization at `/org/branding/`:
+
+- **Logo** — Upload a custom logo (180×40 px, PNG/SVG) to replace the trackable logo in the navbar
+- **Favicon** — Custom browser tab icon
+- **Apple Touch Icon** — Custom icon for the iOS home screen
+- **Primary color** — Overrides button and badge colors
+- **Accent color** — Overrides link and secondary accent colors
+- **Custom CSS** — Add custom CSS rules for fine-tuning (loaded after all standard styles)
+
+All branding changes are applied instantly and only affect the current organization's members.
+
+### Team Calendar
+
+Each organization has a shared weekly calendar at `/org/team-calendar/`. All organization members can:
+
+- View events for the selected week (navigate with prev/next buttons)
+- Create events by clicking an empty time slot or using the "Add Event" button
+- Edit events via an inline modal (title, notes, start time, duration, color)
+- Drag and drop events between days and time slots (SortableJS)
+- Delete their own events; managers can delete any event
+
+Events are color-coded with 6 preset colors and show the creator's name.
+
+
 ### Exports at a glance
 
 | Format | Location | Use case |
 |---|---|---|
-| PDF (landscape A4) | Monthly table → "Export PDF" | Filing, payroll submission |
+| PDF (landscape A4) | Monthly table → "Export PDF" | Filing, payroll submission; uses Web Share API on mobile for native sharing (AirDrop, Messages, Mail) |
 | CSV (semicolon, BOM) | Monthly table → "Export CSV" | Excel, DATEV, further processing |
 
 ---
