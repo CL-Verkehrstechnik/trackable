@@ -419,3 +419,131 @@ class TimeTrackingModeTest(TestCase):
 from trackable.timetracking.models import TimeEntry
 
 
+class SetTargetHoursTest(TestCase):
+    """Tests for the set_target_hours manager view."""
+
+    def setUp(self):
+        self.client = Client()
+        self.manager = User.objects.create_user(
+            username="manager", email="manager@example.com", password="pass123"
+        )
+        self.employee = User.objects.create_user(
+            username="employee", email="emp@example.com", password="pass123"
+        )
+        self.org = Organization.objects.create(
+            name="Acme Corp", created_by=self.manager
+        )
+        self.manager_membership = OrganizationMembership.objects.create(
+            user=self.manager, organization=self.org, role="manager"
+        )
+        self.employee_membership = OrganizationMembership.objects.create(
+            user=self.employee, organization=self.org, role="employee"
+        )
+        self.profile = Profile.objects.create(
+            user=self.employee,
+            title="Dev",
+            position="Engineer",
+            weekly_hours=40,
+            hourly_rate=50,
+        )
+
+    def test_set_target_hours_requires_login(self):
+        response = self.client.post(
+            reverse("set_target_hours", kwargs={
+                "user_id": self.employee.id,
+                "profile_id": self.profile.id,
+            }),
+            {"weekly_target_hours": "30"},
+        )
+        self.assertRedirects(
+            response,
+            f"/accounts/login/?next=/org/employees/{self.employee.id}/profiles/{self.profile.id}/set-target-hours/",
+        )
+
+    def test_set_target_hours_requires_manager(self):
+        self.client.login(username="employee", password="pass123")
+        response = self.client.post(
+            reverse("set_target_hours", kwargs={
+                "user_id": self.employee.id,
+                "profile_id": self.profile.id,
+            }),
+            {"weekly_target_hours": "30"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.profile.refresh_from_db()
+        self.assertIsNone(self.profile.weekly_target_hours)
+
+    def test_set_target_hours_saves_value(self):
+        self.client.login(username="manager", password="pass123")
+        response = self.client.post(
+            reverse("set_target_hours", kwargs={
+                "user_id": self.employee.id,
+                "profile_id": self.profile.id,
+            }),
+            {"weekly_target_hours": "30"},
+        )
+        self.assertRedirects(
+            response,
+            reverse("employee_profile_detail", kwargs={
+                "user_id": self.employee.id,
+                "profile_id": self.profile.id,
+            }),
+        )
+        self.profile.refresh_from_db()
+        self.assertEqual(float(self.profile.weekly_target_hours), 30.0)
+
+    def test_set_target_hours_clears_to_none(self):
+        self.profile.weekly_target_hours = 30
+        self.profile.save()
+        self.client.login(username="manager", password="pass123")
+        response = self.client.post(
+            reverse("set_target_hours", kwargs={
+                "user_id": self.employee.id,
+                "profile_id": self.profile.id,
+            }),
+            {"weekly_target_hours": ""},
+        )
+        self.assertRedirects(
+            response,
+            reverse("employee_profile_detail", kwargs={
+                "user_id": self.employee.id,
+                "profile_id": self.profile.id,
+            }),
+        )
+        self.profile.refresh_from_db()
+        self.assertIsNone(self.profile.weekly_target_hours)
+
+    def test_set_target_hours_wrong_org_manager_cant_set(self):
+        """Manager of org A cannot set target hours on employee of org B."""
+        other_mgr = User.objects.create_user(
+            username="othermgr", password="pass123"
+        )
+        other_org = Organization.objects.create(name="Other Corp", slug="other", created_by=other_mgr)
+        OrganizationMembership.objects.create(
+            user=other_mgr, organization=other_org, role="manager"
+        )
+        self.client.login(username="othermgr", password="pass123")
+        response = self.client.post(
+            reverse("set_target_hours", kwargs={
+                "user_id": self.employee.id,
+                "profile_id": self.profile.id,
+            }),
+            {"weekly_target_hours": "30"},
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_set_target_hours_updates_target_calculation(self):
+        """After setting weekly_target_hours=30, get_target_hours should use it."""
+        self.client.login(username="manager", password="pass123")
+        self.client.post(
+            reverse("set_target_hours", kwargs={
+                "user_id": self.employee.id,
+                "profile_id": self.profile.id,
+            }),
+            {"weekly_target_hours": "30"},
+        )
+        self.profile.refresh_from_db()
+        target = self.profile.get_target_hours(2026, 5)
+        self.assertEqual(target, 126.0)  # 30/5*21 = 126
+
+

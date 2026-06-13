@@ -9,6 +9,11 @@ class Profile(models.Model):
     position = models.CharField(max_length=200)
     address = models.CharField(max_length=500, blank=True, null=True)
     weekly_hours = models.DecimalField(max_digits=4, decimal_places=2)
+    weekly_target_hours = models.DecimalField(
+        max_digits=4, decimal_places=2, null=True, blank=True,
+        verbose_name="Weekly target hours",
+        help_text="Override target hours per week. If empty, uses weekly hours.",
+    )
     hourly_rate = models.DecimalField(max_digits=10, decimal_places=2)
     internal_notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -69,10 +74,12 @@ class Profile(models.Model):
     def get_target_hours(self, year, month):
         """Target hours (Soll) for this profile in a given month.
 
-        Formula: weekly_hours / 5 × working_days_in_month
+        Formula: weekly_target_hours / 5 × working_days_in_month.
+        Falls back to weekly_hours if weekly_target_hours is not set.
         """
         working_days = self._get_working_days_in_month(year, month)
-        daily_hours = float(self.weekly_hours) / 5
+        base = float(self.weekly_target_hours) if self.weekly_target_hours is not None else float(self.weekly_hours)
+        daily_hours = base / 5
         return round(daily_hours * working_days, 2)
 
     def get_balance(self, year, month):

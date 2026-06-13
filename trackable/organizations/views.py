@@ -187,6 +187,38 @@ def employee_detail(request, user_id):
 
 
 @login_required
+@login_required
+@org_manager_required
+@require_http_methods(["POST"])
+def set_target_hours(request, user_id, profile_id):
+    """Set weekly_target_hours for an employee's profile (manager only)."""
+    membership = request.user.organization_membership
+    organization = membership.organization
+
+    employee_membership = get_object_or_404(
+        OrganizationMembership,
+        organization=organization,
+        user_id=user_id,
+    )
+    employee = employee_membership.user
+    profile = get_object_or_404(Profile, pk=profile_id, user=employee)
+
+    value = request.POST.get("weekly_target_hours", "").strip()
+    if value == "":
+        profile.weekly_target_hours = None
+    else:
+        try:
+            profile.weekly_target_hours = float(value)
+        except (ValueError, TypeError):
+            messages.error(request, _("Invalid value for target hours."))
+            return redirect("employee_profile_detail", user_id=user_id, profile_id=profile_id)
+
+    profile.save()
+    messages.success(request, _("Weekly target hours updated."))
+    return redirect("employee_profile_detail", user_id=user_id, profile_id=profile_id)
+
+
+@login_required
 @org_manager_required
 def employee_profile_detail(request, user_id, profile_id):
     membership = request.user.organization_membership

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: trackable\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-13 15:17+0200\n"
+"POT-Creation-Date: 2026-06-13 15:28+0200\n"
 "PO-Revision-Date: 2026-02-27 00:00+0100\n"
 "Last-Translator: webCommits\n"
 "Language-Team: de\n"
@@ -130,6 +130,7 @@ msgstr ""
 "Zusammenfassung aller Arbeitszeiten."
 
 #: templates/accounts/settings.html:21
+#: templates/organizations/employee_profile_detail.html:34
 #: templates/organizations/team_calendar.html:370
 msgid "Save"
 msgstr "Speichern"
@@ -707,7 +708,7 @@ msgid "Actual"
 msgstr "Ist"
 
 #: templates/organizations/employee_detail.html:37
-#: templates/organizations/employee_profile_detail.html:46
+#: templates/organizations/employee_profile_detail.html:69
 #: templates/profiles/detail.html:63
 #: templates/timetracking/monthly_table.html:36
 msgid "Balance"
@@ -748,37 +749,60 @@ msgstr "Stelle"
 msgid "Address"
 msgstr "Adresse"
 
-#: templates/organizations/employee_profile_detail.html:21
+#: templates/organizations/employee_profile_detail.html:18
+#: templates/organizations/employee_profile_detail.html:30
+#, fuzzy
+#| msgid "Weekly hours"
+msgid "Weekly target hours"
+msgstr "Wöchentliche Soll-Stunden"
+
+#: templates/organizations/employee_profile_detail.html:22
+msgid "from profile"
+msgstr "vom Profil"
+
+#: templates/organizations/employee_profile_detail.html:25
+#: templates/timetracking/monthly_table.html:76
+msgid "Edit"
+msgstr "Bearbeiten"
+
+#: templates/organizations/employee_profile_detail.html:37
+#: templates/organizations/employee_remove.html:15
+#: templates/organizations/team_calendar.html:369
+#: templates/profiles/create.html:43 templates/profiles/create.html:45
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: templates/organizations/employee_profile_detail.html:44
 msgid "Month"
 msgstr ""
 
-#: templates/organizations/employee_profile_detail.html:34
+#: templates/organizations/employee_profile_detail.html:57
 #: templates/timetracking/monthly_table.html:24
 msgid "Total hours"
 msgstr "Gesamtstunden"
 
-#: templates/organizations/employee_profile_detail.html:38
+#: templates/organizations/employee_profile_detail.html:61
 #: templates/timetracking/monthly_table.html:28
 msgid "Total earnings"
 msgstr "Gesamtverdienst"
 
-#: templates/organizations/employee_profile_detail.html:42
+#: templates/organizations/employee_profile_detail.html:65
 #: templates/timetracking/monthly_table.html:32
 msgid "Target hours"
 msgstr "Soll-Stunden"
 
-#: templates/organizations/employee_profile_detail.html:54
+#: templates/organizations/employee_profile_detail.html:77
 #: templates/timetracking/monthly_table.html:44
 #: templates/timetracking/vacation_overview.html:36
 msgid "Vacation days"
 msgstr "Urlaubstage"
 
-#: templates/organizations/employee_profile_detail.html:60
+#: templates/organizations/employee_profile_detail.html:83
 #: templates/timetracking/monthly_table.html:51
 msgid "Working hours"
 msgstr "Arbeitsstunden"
 
-#: templates/organizations/employee_profile_detail.html:65
+#: templates/organizations/employee_profile_detail.html:88
 #: templates/organizations/holiday_form.html:12
 #: templates/organizations/holiday_list.html:34
 #: templates/timetracking/add_entry.html:26
@@ -787,7 +811,7 @@ msgstr "Arbeitsstunden"
 msgid "Date"
 msgstr "Datum"
 
-#: templates/organizations/employee_profile_detail.html:66
+#: templates/organizations/employee_profile_detail.html:89
 #: templates/organizations/team_calendar.html:358
 #: templates/timetracking/home.html:41
 #: templates/timetracking/monthly_table.html:57
@@ -795,62 +819,62 @@ msgstr "Datum"
 msgid "Start"
 msgstr "Start"
 
-#: templates/organizations/employee_profile_detail.html:67
+#: templates/organizations/employee_profile_detail.html:90
 #: templates/timetracking/monthly_table.html:58
 #: templates/timetracking/vacation_overview.html:58
 msgid "End"
 msgstr "Ende"
 
-#: templates/organizations/employee_profile_detail.html:68
+#: templates/organizations/employee_profile_detail.html:91
 #: templates/timetracking/monthly_table.html:59
 msgid "Break"
 msgstr "Pause"
 
-#: templates/organizations/employee_profile_detail.html:69
+#: templates/organizations/employee_profile_detail.html:92
 #: templates/timetracking/monthly_table.html:60
 msgid "Hours"
 msgstr "Stunden"
 
-#: templates/organizations/employee_profile_detail.html:70
+#: templates/organizations/employee_profile_detail.html:93
 #: templates/timetracking/monthly_table.html:61
 msgid "Activity"
 msgstr "Tätigkeit"
 
-#: templates/organizations/employee_profile_detail.html:86
+#: templates/organizations/employee_profile_detail.html:109
 #: templates/timetracking/monthly_table.html:87
 msgid "No entries for this month."
 msgstr "Keine Einträge für diesen Monat vorhanden."
 
-#: templates/organizations/employee_profile_detail.html:95
+#: templates/organizations/employee_profile_detail.html:118
 #: templates/timetracking/monthly_table.html:97
 msgid "Vacation / Absence"
 msgstr "Urlaub / Abwesenheit"
 
-#: templates/organizations/employee_profile_detail.html:100
+#: templates/organizations/employee_profile_detail.html:123
 #: templates/timetracking/monthly_table.html:102
 msgid "Period"
 msgstr "Zeitraum"
 
-#: templates/organizations/employee_profile_detail.html:101
+#: templates/organizations/employee_profile_detail.html:124
 #: templates/timetracking/monthly_table.html:103
 #: templates/timetracking/vacation_overview.html:59
 msgid "Workdays"
 msgstr "Arbeitstage"
 
-#: templates/organizations/employee_profile_detail.html:102
+#: templates/organizations/employee_profile_detail.html:125
 #: templates/timetracking/monthly_table.html:104
 #: templates/timetracking/vacation_overview.html:60
 msgid "Weeks"
 msgstr "Wochen"
 
-#: templates/organizations/employee_profile_detail.html:103
+#: templates/organizations/employee_profile_detail.html:126
 #: templates/timetracking/add_vacation.html:31
 #: templates/timetracking/monthly_table.html:105
 #: templates/timetracking/vacation_overview.html:61
 msgid "Description"
 msgstr "Beschreibung"
 
-#: templates/organizations/employee_profile_detail.html:116
+#: templates/organizations/employee_profile_detail.html:139
 #: templates/timetracking/monthly_table.html:118
 #: templates/timetracking/vacation_overview.html:85
 msgid "Total"
@@ -873,12 +897,6 @@ msgid ""
 "Their account and time data will remain, but you will no longer be able to "
 "view their data."
 msgstr ""
-
-#: templates/organizations/employee_remove.html:15
-#: templates/organizations/team_calendar.html:369
-#: templates/profiles/create.html:43 templates/profiles/create.html:45
-msgid "Cancel"
-msgstr "Abbrechen"
 
 #: templates/organizations/holiday_form.html:3
 #: templates/organizations/holiday_form.html:8
@@ -1357,10 +1375,6 @@ msgstr "PDF exportieren"
 msgid "Export CSV"
 msgstr "CSV exportieren"
 
-#: templates/timetracking/monthly_table.html:76
-msgid "Edit"
-msgstr "Bearbeiten"
-
 #: templates/timetracking/monthly_table.html:77
 msgid "Delete this entry?"
 msgstr "Diesen Eintrag löschen?"
@@ -1451,7 +1465,7 @@ msgstr "Ungültiges Datumsformat."
 
 #: trackable/organizations/calendar_views.py:270
 #: trackable/organizations/calendar_views.py:311
-#: trackable/organizations/views.py:360
+#: trackable/organizations/views.py:392
 msgid "Invalid date format."
 msgstr "Ungültiges Datumsformat."
 
@@ -1502,26 +1516,34 @@ msgstr "Zeiterfassungsmodus auf %(mode)s gesetzt."
 msgid "Employee \"%(name)s\" created successfully!"
 msgstr "Profil \"%(title)s\" wurde erfolgreich erstellt!"
 
-#: trackable/organizations/views.py:351
+#: trackable/organizations/views.py:213
+msgid "Invalid value for target hours."
+msgstr "Ungültiger Wert für Soll-Stunden."
+
+#: trackable/organizations/views.py:217
+msgid "Weekly target hours updated."
+msgstr "Wöchentliche Soll-Stunden aktualisiert."
+
+#: trackable/organizations/views.py:383
 msgid "Entry does not belong to your organization."
 msgstr "Eintrag gehört nicht zu Ihrer Organisation."
 
-#: trackable/organizations/views.py:355
+#: trackable/organizations/views.py:387
 msgid "new_date is required."
 msgstr "new_date ist erforderlich."
 
-#: trackable/organizations/views.py:383
+#: trackable/organizations/views.py:415
 #, python-format
 msgid "%(name)s has been removed from the organization."
 msgstr ""
 
-#: trackable/organizations/views.py:432
+#: trackable/organizations/views.py:464
 #, fuzzy, python-format
 #| msgid "Profile \"%(title)s\" was created successfully!"
 msgid "Holiday \"%(name)s\" added successfully!"
 msgstr "Profil \"%(title)s\" wurde erfolgreich erstellt!"
 
-#: trackable/organizations/views.py:454
+#: trackable/organizations/views.py:486
 #, fuzzy
 #| msgid "Profile was deleted."
 msgid "Holiday deleted."

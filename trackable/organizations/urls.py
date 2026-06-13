@@ -13,6 +13,11 @@ urlpatterns = [
         name="employee_profile_detail",
     ),
     path(
+        "employees/<int:user_id>/profiles/<int:profile_id>/set-target-hours/",
+        views.set_target_hours,
+        name="set_target_hours",
+    ),
+    path(
         "employees/<int:user_id>/remove/", views.employee_remove, name="employee_remove"
     ),
     path("weekly/", views.org_weekly_calendar, name="org_weekly_calendar"),

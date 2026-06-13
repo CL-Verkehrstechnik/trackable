@@ -159,3 +159,26 @@ class TimeAccountTests(TestCase):
         # English locale in tests, check for English terms
         self.assertContains(response, "Target")
         self.assertContains(response, "Balance")
+
+    def test_target_hours_uses_weekly_target_hours_when_set(self):
+        """Overridden target → 30/5*21 = 126h"""
+        self.profile.weekly_target_hours = 30
+        self.profile.save()
+        target = self.profile.get_target_hours(2026, 5)
+        self.assertEqual(target, 126.0)
+
+    def test_target_hours_falls_back_to_weekly_hours(self):
+        """weekly_target_hours=None → 40/5*21 = 168h"""
+        self.profile.weekly_target_hours = None
+        self.profile.save()
+        target = self.profile.get_target_hours(2026, 5)
+        self.assertEqual(target, 168.0)
+
+    def test_target_hours_cleared_to_none(self):
+        """Setting None falls back to weekly_hours"""
+        self.profile.weekly_target_hours = 30
+        self.profile.save()
+        self.profile.weekly_target_hours = None
+        self.profile.save()
+        target = self.profile.get_target_hours(2026, 5)
+        self.assertEqual(target, 168.0)

@@ -14,6 +14,29 @@
     {% if profile.address %}
     <p style="color:var(--ctp-subtext0); margin-bottom:5px;"><strong>{% trans "Address" %}:</strong> {{ profile.address }}</p>
     {% endif %}
+    <p style="color:var(--ctp-subtext0); margin-bottom:5px;">
+        <strong>{% trans "Weekly target hours" %}:</strong>
+        {% if profile.weekly_target_hours %}
+            {{ profile.weekly_target_hours }}h
+        {% else %}
+            {{ profile.weekly_hours }}h <em style="color:var(--ctp-overlay2);">({% trans "from profile" %})</em>
+        {% endif %}
+        <a href="#" onclick="document.getElementById('target-hours-form').style.display='block'; this.style.display='none'; return false;"
+           style="margin-left:10px; font-size:.85rem; color:var(--ctp-blue); cursor:pointer;">✏ {% trans "Edit" %}</a>
+    </p>
+    <form id="target-hours-form" method="post" action="/org/employees/{{ employee.id }}/profile/{{ profile.id }}/set-target-hours/"
+          style="display:none; margin-top:10px;">
+        {% csrf_token %}
+        <label style="color:var(--ctp-subtext0); font-size:.85rem;">{% trans "Weekly target hours" %}:</label>
+        <input type="number" name="weekly_target_hours" step="0.5" min="0" max="168"
+               value="{% if profile.weekly_target_hours %}{{ profile.weekly_target_hours }}{% else %}{{ profile.weekly_hours }}{% endif %}"
+               style="width:80px; padding:6px 10px; border-radius:6px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text); margin:0 8px;">
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+        <button type="button" class="btn btn-secondary btn-sm"
+                onclick="this.closest('form').style.display='none'; document.querySelector('[onclick*=\'target-hours-form\']').style.display='inline'; return false;">
+            {% trans "Cancel" %}
+        </button>
+    </form>
 </div>
 
 {% if available_months|length > 1 %}
