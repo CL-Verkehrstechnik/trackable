@@ -234,7 +234,7 @@
 @media (max-width: 640px) {
     .time-slot-label,
     .time-slot-cell {
-        height: 48px;
+        height: 52px;
     }
     .day-col {
         min-width: 100px;
@@ -242,12 +242,28 @@
     .day-col-header .full { display: none; }
     .day-col-header .short { display: inline; }
     .cal-event {
-        font-size: .65rem;
-        padding: 2px 4px;
+        font-size: .72rem;
+        padding: 3px 5px;
     }
     .cal-event .ev-time { display: none; }
+    .cal-event .ev-title { font-size: .75rem; }
+    .team-cal-nav .btn { min-height: 44px; }
     .team-cal-scroll {
         max-height: calc(100vh - 180px);
+    }
+}
+
+@media (max-width: 360px) {
+    .day-col {
+        min-width: 86px;
+    }
+    .time-slot-label,
+    .time-slot-cell {
+        height: 44px;
+    }
+    .cal-event {
+        font-size: .65rem;
+        padding: 2px 3px;
     }
 }
 </style>
@@ -261,15 +277,15 @@
     {# Navigation #}
     <div class="team-cal-nav">
         <div>
-            <a href="/org/" class="btn btn-secondary btn-sm">← {% trans "Back" %}</a>
+            <a href="/org/" class="btn btn-secondary btn-sm" style="min-height:44px;">← {% trans "Back" %}</a>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-            <a href="{{ prev_url }}" class="btn btn-secondary btn-sm">←</a>
+            <a href="{{ prev_url }}" class="btn btn-secondary" style="min-height:44px; padding:9px 14px;">←</a>
             <span class="week-label">
                 {% trans "Week" %} {{ week_number }} – {{ week_start|date:"d.m." }}–{{ week_end|date:"d.m.Y" }}
             </span>
-            <a href="{{ next_url }}" class="btn btn-secondary btn-sm">→</a>
-            <a href="{{ today_url }}" class="btn btn-primary btn-sm">{% trans "Today" %}</a>
+            <a href="{{ next_url }}" class="btn btn-secondary" style="min-height:44px; padding:9px 14px;">→</a>
+            <a href="{{ today_url }}" class="btn btn-primary btn-sm" style="min-height:44px;">{% trans "Today" %}</a>
         </div>
         <div></div>
     </div>

@@ -12,10 +12,10 @@
     {% if profiles %}
     <div style="display:flex; gap:8px; flex-shrink:0; flex-wrap:wrap; align-self:center;">
         {% if not has_org %}
-        <a href="/org/create/" class="btn btn-secondary btn-sm">🏢 {% trans "New organization" %}</a>
+        <a href="/org/create/" class="btn btn-secondary btn-sm" style="min-height:44px;">🏢 {% trans "New organization" %}</a>
         {% endif %}
-        <a href="/profiles/" class="btn btn-secondary btn-sm">{% trans "Manage profiles" %}</a>
-        <a href="/profiles/create/" class="btn btn-primary btn-sm">+ {% trans "New profile" %}</a>
+        <a href="/profiles/" class="btn btn-secondary btn-sm" style="min-height:44px;">{% trans "Manage profiles" %}</a>
+        <a href="/profiles/create/" class="btn btn-primary btn-sm" style="min-height:44px;">+ {% trans "New profile" %}</a>
     </div>
     {% endif %}
 </div>
@@ -38,17 +38,17 @@
         <div class="timer-controls" data-profile-id="{{ profile.id }}" style="margin-bottom:12px;">
             <div class="timer-display" data-profile-id="{{ profile.id }}"></div>
             <div class="flex-row" style="gap:6px;">
-                <button class="btn btn-primary btn-sm" data-action="start" aria-label="{% trans 'Start timer for' %} {{ profile.title }}" style="flex:1;">▶ {% trans "Start" %}</button>
-                <button class="btn btn-warning btn-sm" data-action="pause" aria-label="{% trans 'Pause timer for' %} {{ profile.title }}" style="display:none;">⏸ {% trans "Pause" %}</button>
-                <button class="btn btn-success btn-sm" data-action="resume" aria-label="{% trans 'Resume timer for' %} {{ profile.title }}" style="display:none;">▶ {% trans "Resume" %}</button>
-                <button class="btn btn-danger btn-sm" data-action="stop" aria-label="{% trans 'Stop timer for' %} {{ profile.title }}" style="display:none;">⏹ {% trans "Stop" %}</button>
+                <button class="btn btn-primary" data-action="start" aria-label="{% trans 'Start timer for' %} {{ profile.title }}" style="flex:1; min-height:48px;">▶ {% trans "Start" %}</button>
+                <button class="btn btn-warning" data-action="pause" aria-label="{% trans 'Pause timer for' %} {{ profile.title }}" style="display:none; flex:1; min-height:48px;">⏸ {% trans "Pause" %}</button>
+                <button class="btn btn-success" data-action="resume" aria-label="{% trans 'Resume timer for' %} {{ profile.title }}" style="display:none; flex:1; min-height:48px;">▶ {% trans "Resume" %}</button>
+                <button class="btn btn-danger" data-action="stop" aria-label="{% trans 'Stop timer for' %} {{ profile.title }}" style="display:none; flex:1; min-height:48px;">⏹ {% trans "Stop" %}</button>
             </div>
         </div>
         <div class="flex-row" style="gap:8px;">
             {% if can_edit %}
-            <a href="/add-entry/{{ profile.id }}/" class="btn btn-primary btn-sm" style="flex:1; justify-content:center;">+ {% trans "Add time" %}</a>
+            <a href="/add-entry/{{ profile.id }}/" class="btn btn-primary btn-sm" style="flex:1; justify-content:center; min-height:44px;">+ {% trans "Add time" %}</a>
             {% endif %}
-            <a href="/profiles/{{ profile.id }}/" class="btn btn-secondary btn-sm">{% trans "Monthly overview" %}</a>
+            <a href="/profiles/{{ profile.id }}/" class="btn btn-secondary btn-sm" style="min-height:44px;">{% trans "Monthly overview" %}</a>
         </div>
     </div>
     {% endfor %}

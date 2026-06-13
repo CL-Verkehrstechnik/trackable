@@ -658,6 +658,31 @@ hr, .divider { border: none; border-top: 1px solid var(--ctp-overlay0); margin: 
     .page-main { padding: 20px 0 40px; }
     .content   { padding: 16px; border-radius: var(--radius-md); }
     .btn-text-hide { display: none; }
+
+    /* ── Touch targets ≥44px ── */
+    .btn { padding: 11px 22px; min-height: 44px; font-size: .92rem; }
+    .btn-sm { padding: 10px 18px; min-height: 44px; font-size: .88rem; }
+    .btn-lg { padding: 14px 32px; min-height: 48px; }
+
+    /* ── Larger inputs on mobile ── */
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        padding: 13px 16px;
+        font-size: 1rem;
+    }
+
+    /* ── Body font bump ── */
+    body { font-size: 16px; }
+
+    /* ── Card label readability ── */
+    .card-label { font-size: .75rem; }
+
+    /* ── Badge readability ── */
+    .badge { font-size: .78rem; }
+
+    /* ── Table header readability ── */
+    .table th { font-size: .78rem; }
 }
 
 /* ─── Skip Link ─── */
@@ -1378,6 +1403,38 @@ hr, .divider { border: none; border-top: 1px solid var(--ctp-overlay0); margin: 
     grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
     gap: 18px;
 }
+
+/* ─── Safe Areas for iOS Notch / Home Indicator ─── */
+.site-header {
+    padding-left: max(18px, env(safe-area-inset-left));
+    padding-right: max(18px, env(safe-area-inset-right));
+}
+
+.page-main {
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-bottom: max(40px, env(safe-area-inset-bottom));
+}
+
+.site-footer {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding-left: max(14px, env(safe-area-inset-left));
+        padding-right: max(14px, env(safe-area-inset-right));
+    }
+}
+
+/* ─── Extra-small breakpoint (360px) ─── */
+@media (max-width: 360px) {
+    .container { padding: 0 10px; }
+    .content { padding: 12px; }
+    .btn { padding: 10px 16px; font-size: .85rem; }
+    .btn-sm { padding: 9px 14px; font-size: .82rem; }
+}
+
 
 .card-label {
     font-size: .7rem;

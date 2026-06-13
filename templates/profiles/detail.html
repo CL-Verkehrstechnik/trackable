@@ -11,10 +11,10 @@
             <p style="color: var(--ctp-subtext0);">{{ profile.position }}</p>
         </div>
         <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-            <a href="/profiles/{{ profile.id }}/edit/" class="btn btn-secondary btn-sm">✏ {% trans "Edit profile" %}</a>
+            <a href="/profiles/{{ profile.id }}/edit/" class="btn btn-secondary" style="min-height:44px;">✏ {% trans "Edit profile" %}</a>
             <form method="post" action="/profiles/{{ profile.id }}/delete/" style="display:inline;" onsubmit="return confirm('{% trans "Really delete this profile? All time entries will be lost." %}')">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-danger-light">🗑 {% trans "Delete" %}</button>
+                <button type="submit" class="btn btn-sm btn-danger-light" style="min-height:44px;">🗑 {% trans "Delete" %}</button>
             </form>
             <a href="/add-entry/{{ profile.id }}/" class="btn btn-primary" style="font-size: 1.2rem; padding: 15px 30px;">
                 + {% trans "Log time" %}

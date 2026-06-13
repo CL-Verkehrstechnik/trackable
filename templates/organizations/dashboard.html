@@ -88,8 +88,8 @@
             <div style="font-size:.82rem; color:var(--ctp-subtext0);">{{ m.user.email }}</div>
         </div>
         <div style="display:flex; gap:8px; flex-shrink:0;">
-            <a href="/org/employees/{{ m.user.id }}/" class="btn btn-secondary btn-sm">{% trans "View" %}</a>
-            <a href="/org/employees/{{ m.user.id }}/remove/" class="btn btn-sm btn-danger-light">{% trans "Remove" %}</a>
+            <a href="/org/employees/{{ m.user.id }}/" class="btn btn-secondary" style="min-height:44px;">{% trans "View" %}</a>
+            <a href="/org/employees/{{ m.user.id }}/remove/" class="btn btn-sm btn-danger-light" style="min-height:44px;">{% trans "Remove" %}</a>
         </div>
     </div>
     {% endfor %}
