@@ -567,18 +567,36 @@ Checkliste pro Seite:
 ## Phase 6: Company Branding (White-Label) 🎨
 
 ### Ziel
-Manager/Org-Admins sollen die App-Oberfläche an das Corporate Design ihrer Firma anpassen können:
+Manager/Org-Admins sollen die App-Oberfläche an das Corporate Design ihrer Firma anpassen können, ohne Code zu ändern.
 
-- **Logo** oben links in der Navbar (statt fixem `trackable-logo.png`)
-- **Favicon** im Browser-Tab + Apple-Touch-Icon
-- **Primär-/Akzentfarbe** überschreibt CSS-Variablen (Button-Farben, Links, Akzente)
-- **Custom CSS** für Feintuning ohne Entwickler-Beteiligung
+Konfigurierbare Elemente pro Organisation:
 
-Pro Organisation konfigurierbar im Org-Dashboard.
+- **Logo** in der Navbar (ersetzt `trackable-logo.png` + Schriftzug)
+- **Favicon** + **Apple Touch Icon** (Browser-Tab, Lesezeichen, Homescreen)
+- **Primärfarbe** – überschreibt `--ctp-mauve`, `--ctp-pink` (Buttons, Badges, Akzente)
+- **Akzentfarbe** – überschreibt `--ctp-blue`, `--ctp-lavender` (Links, sekundäre Akzente)
+- **Custom CSS** für beliebiges Feintuning (ohne Entwickler)
+
+**Wichtig – CSS-Strategie:** Die Branding-Farben überschreiben ausgewählte `--ctp-*`-Variablen, sodass Buttons, Badges, Links und andere UI-Elemente automatisch die Firmenfarben annehmen. Der Fallback auf die Catppuccin-Palette bleibt erhalten.
 
 ---
 
-### Ausführungsplan
+### Audit (aktueller Stand)
+
+| Bereich | Status | Details |
+|---------|--------|--------|
+| `base.html` Logo | Fix | `trackable-logo.png` + `trackable.`-Schriftzug |
+| `base.html` Favicons | 4 Zeilen | `.ico`, `32×32`, `16×16`, `apple-touch-icon` |
+| `base.html` theme-color | `#292c3c` fix | ``<meta name=\"theme-color\" content=\"#292c3c\">`` |
+| Footer-Logo | Soll **bleiben** | App-Eigenlogo im Footer, kein Org-Logo |
+| Media-Serving Dev | ✅ `urls.py` | `static(settings.MEDIA_URL, …)` aktiv |
+| Media-Serving Prod | ❌ | Whitenoise servt keine User-Uploads – Lösung nötig |
+| TEMPLATES context_processors | 4 Standard-Einträge | Kein eigener Processor bisher |
+| `MEDIA_ROOT` | `BASE_DIR.parent / \"media\"` | Bereits gesetzt, existiert als Verzeichnis |
+
+---
+
+### Ausführungsplan (11 Schritte)
 
 #### Schritt 1: Branding-Felder auf `Organization`
 
@@ -586,45 +604,47 @@ Pro Organisation konfigurierbar im Org-Dashboard.
 
 ```python
 class Organization(models.Model):
-    # … bestehende Felder (name, slug, time_tracking_mode, cal_* …)
+    # … bestehende Felder (name, slug, time_tracking_mode, cal_*, …)
 
-    # Branding
+    # ── Branding / White-Label ──
     logo = models.ImageField(
         upload_to="org_logos/",
         blank=True, null=True,
-        verbose_name="Logo (Navbar)",
-        help_text=_("Empfohlen: 180×40 px, PNG oder SVG."),
+        verbose_name=_("Logo (Navbar)"),
+        help_text=_("Empfohlen: 180×40 px, PNG oder SVG mit transparentem Hintergrund."),
     )
     favicon = models.ImageField(
         upload_to="org_favicons/",
         blank=True, null=True,
-        verbose_name="Favicon",
+        verbose_name=_("Favicon"),
         help_text=_("Empfohlen: 32×32 px, ICO oder PNG."),
     )
     apple_touch_icon = models.ImageField(
         upload_to="org_favicons/",
         blank=True, null=True,
-        verbose_name="Apple Touch Icon",
-        help_text=_("Empfohlen: 180×180 px, PNG."),
+        verbose_name=_("Apple Touch Icon"),
+        help_text=_("Empfohlen: 180×180 px, PNG. Wird auf dem iOS-Homescreen verwendet."),
     )
     primary_color = models.CharField(
         max_length=7,
         default="", blank=True,
         verbose_name=_("Primärfarbe"),
-        help_text=_("Hex-Farbe (z. B. #8caaee). Überschreibt die Haupt-Akzentfarbe."),
+        help_text=_("Hex-Farbe (z. B. #ca9ee6). Überschreibt primäre UI-Akzente (Buttons, Badges)."),
     )
     accent_color = models.CharField(
         max_length=7,
         default="", blank=True,
         verbose_name=_("Akzentfarbe"),
-        help_text=_("Hex-Farbe (z. B. #ca9ee6). Überschreibt sekundäre Akzente."),
+        help_text=_("Hex-Farbe (z. B. #8caaee). Überschreibt sekundäre Akzente (Links, Hover)."),
     )
     custom_css = models.TextField(
-        blank=True, null=True,
-        verbose_name=_("Custom CSS"),
+        blank=True, default="",
+        verbose_name=_("Eigenes CSS"),
         help_text=_("Beliebige CSS-Regeln, nach den Standard-Styles geladen."),
     )
 ```
+
+**Hinweis:** `custom_css` verwendet `default=""` statt `null=True`, damit im Template einfacher per `{% if org_custom_css %}` geprüft werden kann.
 
 #### Schritt 2: Migration
 
@@ -633,28 +653,7 @@ uv run python manage.py makemigrations organizations --name org_branding
 uv run python manage.py migrate
 ```
 
-#### Schritt 3: Media-Serving sicherstellen
-
-`MEDIA_URL` und `MEDIA_ROOT` sind bereits in `settings/base.py`:
-
-```python
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR.parent / "media"
-```
-
-**trackable/urls.py** prüfen: Media-Serving für Dev muss aktiv sein:
-
-```python
-from django.conf import settings
-from django.conf.urls.static import static
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-```
-
-Für **Produktion**: Whitenoise servt keine Media-Files. Einfachster Weg: Media-View in `core/views.py` mit `if settings.DEBUG or settings.SERVE_MEDIA`. Oder nginx vorschalten.
-
-#### Schritt 4: Context Processor
+#### Schritt 3: Context Processor
 
 **Neu:** `trackable/organizations/context_processors.py`
 
@@ -668,27 +667,38 @@ def org_branding(request):
         "org_primary_color": "",
         "org_accent_color": "",
         "org_custom_css": "",
+        "has_branding": False,
     }
     membership = getattr(request.user, "organization_membership", None)
     if not membership:
         return branding
     org = membership.organization
+
+    has_branding = False
     if org.logo:
         branding["org_logo_url"] = org.logo.url
+        has_branding = True
     if org.favicon:
         branding["org_favicon_url"] = org.favicon.url
+        has_branding = True
     if org.apple_touch_icon:
         branding["org_apple_touch_icon_url"] = org.apple_touch_icon.url
+        has_branding = True
     if org.primary_color:
         branding["org_primary_color"] = org.primary_color
+        has_branding = True
     if org.accent_color:
         branding["org_accent_color"] = org.accent_color
+        has_branding = True
     if org.custom_css:
         branding["org_custom_css"] = org.custom_css
+        has_branding = True
+
+    branding["has_branding"] = has_branding
     return branding
 ```
 
-**In `settings/base.py` registrieren:**
+**In `trackable/settings/base.py` registrieren:**
 
 ```python
 TEMPLATES[0]["OPTIONS"]["context_processors"].append(
@@ -696,9 +706,21 @@ TEMPLATES[0]["OPTIONS"]["context_processors"].append(
 )
 ```
 
-#### Schritt 5: Base-Template aktualisieren
+Einrückung beachten: Die Liste ist vier Leerzeichen eingerückt.
 
-**Favicon** (`templates/base.html`):
+#### Schritt 4: Base-Template aktualisieren
+
+**Datei:** `templates/base.html`
+
+Alle Änderungen im `<head>`-Bereich:
+
+**a) theme-color dynamisch machen:**
+
+```html
+<meta name="theme-color" content="{% if org_primary_color %}{{ org_primary_color }}{% else %}#292c3c{% endif %}">
+```
+
+**b) Favicon dynamisch:**
 
 ```html
 {% if org_favicon_url %}
@@ -707,51 +729,64 @@ TEMPLATES[0]["OPTIONS"]["context_processors"].append(
 {% else %}
 <link rel="icon" type="image/x-icon"  href="{% static 'img/favicon.ico' %}">
 <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
+<link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
 {% endif %}
 ```
 
-**Apple Touch Icon:**
+**c) Apple Touch Icon:**
 
 ```html
 <link rel="apple-touch-icon" href="{% if org_apple_touch_icon_url %}{{ org_apple_touch_icon_url }}{% else %}{% static 'img/apple-touch-icon.png' %}{% endif %}">
 ```
 
-**Meta theme-color:**
+**d) Branding-CSS-Variablen + Custom CSS (nach `{% block extra_css %}` vor `</head>` einfügen):**
 
 ```html
-<meta name="theme-color" content="{% if org_primary_color %}{{ org_primary_color }}{% else %}#292c3c{% endif %}">
-```
-
-**Branding-CSS-Variablen injizieren:**
-
-```html
-{% if org_primary_color or org_accent_color %}
+{% if has_branding %}
 <style>
     :root {
         {% if org_primary_color %}
         --brand-primary: {{ org_primary_color }};
-        --ctp-blue: {{ org_primary_color }};
-        --ctp-lavender: {{ org_primary_color }};
+        --ctp-mauve: {{ org_primary_color }};
+        --ctp-pink: {{ org_primary_color }};
+        --glow-mauve: 0 0 20px {{ org_primary_color }}33;
         {% endif %}
         {% if org_accent_color %}
-        --brand-accent: {{ org_accent_color }};
-        --ctp-mauve: {{ org_accent_color }};
-        --ctp-pink: {{ org_accent_color }};
+        --brand-link: {{ org_accent_color }};
+        --ctp-blue: {{ org_accent_color }};
+        --ctp-lavender: {{ org_accent_color }};
+        --ctp-sapphire: {{ org_accent_color }};
+        --glow-blue: 0 0 20px {{ org_accent_color }}33;
+        {% endif %}
+    }
+    [data-theme="light"]:root {
+        {% if org_primary_color %}
+        --ctp-mauve: {{ org_primary_color }};
+        --ctp-pink: {{ org_primary_color }};
+        --glow-mauve: 0 0 20px {{ org_primary_color }}22;
+        {% endif %}
+        {% if org_accent_color %}
+        --ctp-blue: {{ org_accent_color }};
+        --ctp-lavender: {{ org_accent_color }};
+        --ctp-sapphire: {{ org_accent_color }};
+        --glow-blue: 0 0 20px {{ org_accent_color }}22;
         {% endif %}
     }
 </style>
 {% endif %}
 {% if org_custom_css %}
-<style>{{ org_custom_css }}</style>
+<style id="org-custom-css">{{ org_custom_css|safe }}</style>
 {% endif %}
 ```
 
-**Logo in der Navbar:**
+**Erklärung:** `has_branding` verhindert leeres `<style>`-Tag. Branding-Farben überschreiben nur die relevanten `--ctp-*`-Variablen. Der `[data-theme="light"]`-Block sorgt dafür, dass die Farben auch im Light-Mode gelten. Die `--glow-*`-Variablen werden mit 20% Opazität gesetzt, da die Catppuccin-Originale feste RGBA-Werte sind.
+
+**e) Logo in der Navbar:**
 
 ```html
 <a href="/" class="logo">
     {% if org_logo_url %}
-    <img src="{{ org_logo_url }}" alt="{{ organization.name }}" class="logo-img org-logo" style="max-height:40px; width:auto;">
+    <img src="{{ org_logo_url }}" alt="{{ organization.name }}" class="logo-img" style="max-height:40px; width:auto;">
     {% else %}
     <img src="{% static 'img/trackable-logo.png' %}" alt="trackable." class="logo-img">
     <span class="logo-name">trackable.</span>
@@ -759,23 +794,49 @@ TEMPLATES[0]["OPTIONS"]["context_processors"].append(
 </a>
 ```
 
-#### Schritt 6: Branding-View + Form + Template
+**wichtig:** Der Footer (`<img src=\u2019{% static 'img/trackable-logo.png' %}…`) bleibt unverändert – dort soll das App-Logo erhalten bleiben.
 
-**Formular** in `trackable/organizations/forms.py` (oder eigene Datei):
+#### Schritt 5: Branding-Formular
+
+**Datei:** `trackable/organizations/forms.py`
 
 ```python
 class OrganizationBrandingForm(forms.ModelForm):
     class Meta:
         model = Organization
-        fields = ["logo", "favicon", "apple_touch_icon", "primary_color", "accent_color", "custom_css"]
+        fields = [
+            "logo", "favicon", "apple_touch_icon",
+            "primary_color", "accent_color", "custom_css",
+        ]
         widgets = {
-            "primary_color": forms.TextInput(attrs={"type": "color"}),
-            "accent_color": forms.TextInput(attrs={"type": "color"}),
-            "custom_css": forms.Textarea(attrs={"rows": 8, "class": "css-editor", "placeholder": "/* Custom CSS */"}),
+            "primary_color": forms.TextInput(attrs={
+                "type": "color",
+                "style": "width:60px; height:44px; padding:4px; cursor:pointer;",
+            }),
+            "accent_color": forms.TextInput(attrs={
+                "type": "color",
+                "style": "width:60px; height:44px; padding:4px; cursor:pointer;",
+            }),
+            "custom_css": forms.Textarea(attrs={
+                "rows": 10,
+                "class": "form-control css-editor",
+                "placeholder": _("/* Custom CSS rules */"),
+                "style": "font-family:monospace; font-size:.88rem;",
+            }),
+        }
+        help_texts = {
+            "logo": _("Empfohlen: 180×40 px, PNG oder SVG. Ersetzt das Logo in der Navigationsleiste."),
+            "favicon": _("Empfohlen: 32×32 px, ICO oder PNG."),
+            "apple_touch_icon": _("Empfohlen: 180×180 px, PNG. iOS-Homescreen-Symbol."),
+            "primary_color": _("Hex-Farbe (#RRGGBB). Überschreibt primäre UI-Akzente (Buttons, Badges)."),
+            "accent_color": _("Hex-Farbe (#RRGGBB). Überschreibt sekundäre Akzente (Links, Hover)."),
+            "custom_css": _("Beliebige CSS-Regeln (z. B. .btn-primary { background: #xyz; }). Wird nach allen Standard-Styles geladen."),
         }
 ```
 
-**View** in `trackable/organizations/views.py`:
+#### Schritt 6: View + URL + Template
+
+**View** (`trackable/organizations/views.py`):
 
 ```python
 @login_required
@@ -790,84 +851,243 @@ def org_branding(request):
             return redirect("org_branding")
     else:
         form = OrganizationBrandingForm(instance=org)
-    return render(request, "organizations/branding.html", {"form": form, "organization": org})
+    return render(request, "organizations/branding.html", {
+        "form": form,
+        "organization": org,
+    })
 ```
 
-**URL** in `trackable/organizations/urls.py`:
+**URL** (`trackable/organizations/urls.py`):
 
 ```python
 path("branding/", views.org_branding, name="org_branding"),
 ```
 
-**Dashboard-Link** im Settings-Block der Org:
-
-```html
-<a href="/org/branding/" class="btn btn-secondary btn-sm">🎨 {% trans "Branding" %}</a>
-```
-
-**Template** `templates/organizations/branding.html`:
+**Template** (`templates/organizations/branding.html` – neu):
 
 ```html
 {% extends 'base.html' %}
 {% load i18n %}
+{% load static %}
 
 {% block title %}{% trans "Branding" %} – {{ organization.name }}{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width:700px; margin:0 auto;">
-    <h2>🎨 {% trans "Company Branding" %}</h2>
-    <p class="help-text">{% trans "Customize the appearance for your organization." %}</p>
-    
+<div class="content" style="max-width:720px; margin:0 auto;">
+    <h1>🎨 {% trans "Company Branding" %}</h1>
+    <p style="color:var(--ctp-subtext0); margin-bottom:28px;">
+        {% trans "Customize the look and feel of trackable for your organization." %}
+    </p>
+
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
-        <a href="/org/" class="btn btn-secondary">{% trans "Cancel" %}</a>
+
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+            <small class="text-muted" style="display:block; margin-top:4px;">{{ field.help_text }}</small>
+            {% endif %}
+            {% for error in field.errors %}
+            <span class="field-error">{{ error }}</span>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <div style="display:flex; gap:12px; margin-top:24px;">
+            <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+            <a href="/org/" class="btn btn-secondary">{% trans "Cancel" %}</a>
+        </div>
     </form>
+
+    <hr class="divider">
+    <h3>🔍 {% trans "Preview" %}</h3>
+    <p style="color:var(--ctp-subtext0); margin-bottom:16px;">
+        {% trans "To see your branding changes, save and reload any page." %}
+    </p>
 </div>
 {% endblock %}
 ```
 
-#### Schritt 7: i18n / Übersetzungen
+**Dashboard-Link** (`templates/organizations/dashboard.html`) – im Team-Settings-Block hinter den Kalender-Buttons:
+
+```html
+<a href="/org/branding/" class="btn btn-secondary btn-sm" style="min-height:44px;">🎨 {% trans "Branding" %}</a>
+```
+
+#### Schritt 7: `@org_manager_required` prüfen
+
+**Prüfen ob `org_manager_required` Decorator existiert.** Falls nicht (z. B. nur `login_required`), einen manuellen Check einbauen:
+
+```python
+from django.core.exceptions import PermissionDenied
+
+@login_required
+def org_branding(request):
+    membership = request.user.organization_membership
+    if not membership or not membership.is_manager:
+        raise PermissionDenied
+    ...
+```
+
+#### Schritt 8: Production Media-Serving absichern
+
+**Datei:** `trackable/urls.py`
+
+Whitenoise servt keine User-uploaded Media. Lösung: Conditional serving auch für Production, geschützt hinter Staff-Login:
+
+```python
+from django.conf import settings
+from django.conf.urls.static import static
+from django.views.static import serve as static_serve
+from django.contrib.admin.views.decorators import staff_member_required
+
+urlpatterns = [
+    # … bestehende Patterns …
+]
+
+# Media-Dateien in Dev UND optional in Production serven
+if settings.DEBUG or getattr(settings, "SERVE_MEDIA", False):
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if not settings.DEBUG:
+    # In Production: Media nur für Staff-Mitglieder (Manager sehen Bilder über die App, nicht direkt)
+    urlpatterns += [
+        path("media/<path:path>", staff_member_required(static_serve), {
+            "document_root": settings.MEDIA_ROOT,
+        }),
+    ]
+```
+
+**Alternativ für einfache Projekte:** In `settings/prod.py` `SERVE_MEDIA = config("SERVE_MEDIA", default=True, cast=bool)` setzen und im Dev-Mode lassen – für die meisten Coolify-Deployments reicht das.
+
+#### Schritt 9: i18n / Übersetzungen
 
 ```bash
 uv run django-admin makemessages -l de
 ```
 
-Strings: `Branding`, `Company Branding`, `Primary Color`, `Accent Color`, `Custom CSS`, `Logo`, `Favicon`, `Apple Touch Icon`, `Branding saved.`, u. a.
+Neue Strings (wichtigste):
+
+| String | Übersetzung |
+|--------|------------|
+| `"Logo (Navbar)"` | `"Logo (Navigationsleiste)"` |
+| `"Favicon"` | `"Favicon"` |
+| `"Apple Touch Icon"` | `"Apple Touch Icon"` |
+| `"Primary color"` → `"Primärfarbe"` | `"Primärfarbe"` |
+| `"Accent color"` | `"Akzentfarbe"` |
+| `"Custom CSS"` | `"Eigenes CSS"` |
+| `"Branding saved."` | `"Design gespeichert."` |
+| `"Company Branding"` | `"Firmen-Design"` |
+| `"Customize the look and feel…"` | `"Passen Sie das Erscheinungsbild an Ihre Firma an."` |
 
 ```bash
 uv run django-admin compilemessages
 ```
 
-#### Schritt 8: Tests
+#### Schritt 10: Tests
 
-**tests/test_organizations.py** erweitern:
+**Datei:** `tests/test_organizations.py`
 
 ```python
 class OrganizationBrandingTest(TestCase):
-    def test_branding_view_requires_login(self): ...
-    def test_branding_view_requires_manager(self): ...
-    def test_branding_view_renders_200(self): ...
-    def test_branding_saves_logo(self): ...
-    def test_branding_saves_colors(self): ...
-    def test_branding_defaults_empty(self): ...
-    def test_context_processor_returns_branding(self): ...
-    def test_logo_appears_in_navbar_when_set(self): ...
-    def test_favicon_appears_in_head_when_set(self): ...
+    def setUp(self):
+        self.client = Client()
+        self.manager = User.objects.create_user(username="mgr", password="pass123")
+        self.org = Organization.objects.create(name="TestCorp")
+        OrganizationMembership.objects.create(
+            user=self.manager, organization=self.org, role="manager"
+        )
+        self.client.login(username="mgr", password="pass123")
+
+    def test_branding_view_requires_login(self):
+        self.client.logout()
+        resp = self.client.get(reverse("org_branding"))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_branding_view_requires_manager(self):
+        emp = User.objects.create_user(username="emp", password="pass123")
+        OrganizationMembership.objects.create(
+            user=emp, organization=self.org, role="employee"
+        )
+        self.client.login(username="emp", password="pass123")
+        resp = self.client.get(reverse("org_branding"))
+        # Entweder 403 (PermissionDenied) oder 302 (login_required redirect)
+        self.assertIn(resp.status_code, (302, 403))
+
+    def test_branding_view_renders_200(self):
+        resp = self.client.get(reverse("org_branding"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Company Branding")
+
+    def test_branding_saves_colors(self):
+        resp = self.client.post(reverse("org_branding"), {
+            "primary_color": "#ff0000",
+            "accent_color": "#00ff00",
+            "custom_css": ".btn { background: red !important; }",
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.org.refresh_from_db()
+        self.assertEqual(self.org.primary_color, "#ff0000")
+        self.assertEqual(self.org.accent_color, "#00ff00")
+        self.assertEqual(self.org.custom_css, ".btn { background: red !important; }")
+
+    def test_branding_defaults_empty(self):
+        self.org.refresh_from_db()
+        self.assertEqual(self.org.primary_color, "")
+        self.assertEqual(self.org.accent_color, "")
+        self.assertEqual(self.org.custom_css, "")
+
+    def test_context_processor_no_org(self):
+        user = User.objects.create_user(username="noorg", password="pass123")
+        self.client.login(username="noorg", password="pass123")
+        resp = self.client.get(reverse("home"))
+        self.assertFalse(resp.context.get("has_branding"))
+
+    def test_logo_appears_in_navbar_when_set(self):
+        # ImageField-Test mit SimpleUploadedFile
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        import io
+        from PIL import Image
+        img = io.BytesIO()
+        Image.new("RGBA", (180, 40), (136, 57, 239, 255)).save(img, "PNG")
+        img.seek(0)
+        self.org.logo = SimpleUploadedFile("logo.png", img.getvalue(), content_type="image/png")
+        self.org.save()
+        resp = self.client.get(reverse("org_dashboard"))
+        self.assertContains(resp, self.org.logo.url)
 ```
 
-#### Umsetzungsreihenfolge
+**Hinweis:** Für den ImageField-Test wird `Pillow` benötigt (bereits in `pyproject.toml`).
+
+#### Schritt 11: Vollständigen Test-Suite laufen lassen
+
+```bash
+make test
+# oder
+docker exec -i trackable-dev python manage.py test tests/ --verbosity=1
+```
+
+---
+
+### Umsetzungsreihenfolge
 
 | # | Schritt | Datei(en) |
 |---|---------|-----------|
 | 1 | Model-Felder + Migration | `organizations/models.py`, `migrations/` |
-| 2 | Media-Serving verifizieren | `trackable/urls.py` |
-| 3 | Context Processor | `organizations/context_processors.py`, `settings/base.py` |
-| 4 | Base-Template (Favicon, Logo, CSS-Vars) | `templates/base.html` |
-| 5 | Formular + View + URL | `organizations/forms.py`, `views.py`, `urls.py` |
+| 2 | Context Processor | `organizations/context_processors.py`, `settings/base.py` |
+| 3 | Base-Template (Favicon, Logo, CSS-Vars, theme-color) | `templates/base.html` |
+| 4 | Branding-Formular | `organizations/forms.py` |
+| 5 | View + URL | `organizations/views.py`, `urls.py` |
 | 6 | Branding-Template | `templates/organizations/branding.html` |
 | 7 | Dashboard-Link | `templates/organizations/dashboard.html` |
-| 8 | Übersetzungen | `locale/de/LC_MESSAGES/django.po` |
-| 9 | Tests | `tests/test_organizations.py` |
-| 10 | Vollständigen Test-Suite laufen lassen | `make test` |
+| 8 | `@org_manager_required` prüfen / Permission-Check | `organizations/views.py` |
+| 9 | Production Media-Serving absichern | `trackable/urls.py` |
+| 10 | Übersetzungen | `locale/de/LC_MESSAGES/django.po` |
+| 11 | Tests | `tests/test_organizations.py` |
+| 12 | Vollständigen Test-Suite laufen lassen | `make test` |
+
+---
+
+*(Geplante Commits: `docs: detail Phase 6 Company Branding plan`, dann `feat: Phase 6 – Company Branding/White-Label`)*
