@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 import html2text
@@ -44,20 +44,14 @@ class Command(BaseCommand):
                     continue
 
                 from trackable.timetracking.models import VacationEntry
-                import calendar as cal_module
-                from datetime import datetime as dt
-                last_day = cal_module.monthrange(today.year, today.month)[1]
+                last_day = calendar.monthrange(today.year, today.month)[1]
                 vacation_entries = list(
                     profile.vacation_entries.filter(
-                        start_date__lte=dt(today.year, today.month, last_day).date(),
-                        end_date__gte=dt(today.year, today.month, 1).date(),
+                        start_date__lte=datetime(today.year, today.month, last_day).date(),
+                        end_date__gte=datetime(today.year, today.month, 1).date(),
                     ).order_by("start_date")
                 )
                 total_vacation_days = sum(v.workdays for v in vacation_entries)
-
-                pdf_buffer = self.generate_pdf(
-                    profile, today.year, today.month, entries, vacation_entries
-                )
 
                 html_message = render_to_string(
                     "emails/monthly_report_email.html",
@@ -81,18 +75,17 @@ class Command(BaseCommand):
                 text_message = html2text.html2text(html_message)
 
                 try:
-                    send_mail(
-                        f"Monatsbericht - {profile.title} - {datetime(today.year, today.month, 1).strftime('%B %Y')}",
-                        text_message,
-                        settings.DEFAULT_FROM_EMAIL,
-                        [user.email],
-                        html_message=html_message,
-                        fail_silently=False,
-                    )
-
                     pdf_buffer = self.generate_pdf(
                         profile, today.year, today.month, entries, vacation_entries
                     )
+                    email = EmailMessage(
+                        subject=f"Monatsbericht - {profile.title} - {datetime(today.year, today.month, 1).strftime('%B %Y')}",
+                        body=text_message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to=[user.email],
+                    )
+                    email.attach(f"arbeitszeiten_{profile.title}_{today.year}_{today.month}.pdf", pdf_buffer.getvalue(), "application/pdf")
+                    email.send(fail_silently=False)
 
                     self.stdout.write(
                         self.style.SUCCESS(

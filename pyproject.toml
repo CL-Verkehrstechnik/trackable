@@ -13,3 +13,6 @@ dependencies = [
     "reportlab==4.0.7",
     "whitenoise==6.8.2",
 ]
+
+[tool.setuptools.packages.find]
+include = ["trackable*"]

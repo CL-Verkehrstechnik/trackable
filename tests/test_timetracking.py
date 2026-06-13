@@ -298,3 +298,171 @@ class TimerOnlyBlockingTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Edit")
 
+
+class TimerAPITest(TestCase):
+    """Tests for the timer API endpoints (start, pause, resume, stop, status)."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="timeruser", email="timer@example.com", password="testpass123"
+        )
+        self.profile = Profile.objects.create(
+            user=self.user,
+            title="Timer Profile",
+            position="Tester",
+            weekly_hours=40,
+            hourly_rate=50,
+        )
+        self.client.login(username="timeruser", password="testpass123")
+
+    def test_start_timer(self):
+        """POST start creates an ActiveTimer."""
+        from trackable.timetracking.models import ActiveTimer
+        response = self.client.post(
+            reverse("start_timer", kwargs={"profile_id": self.profile.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "started")
+        self.assertEqual(data["profile_id"], self.profile.id)
+        self.assertTrue(ActiveTimer.objects.filter(profile=self.profile, user=self.user).exists())
+
+    def test_start_timer_twice_returns_400(self):
+        """Starting a timer when one is already running returns 400."""
+        from trackable.timetracking.models import ActiveTimer
+        ActiveTimer.objects.create(
+            profile=self.profile, user=self.user, start_time=timezone.now()
+        )
+        response = self.client.post(
+            reverse("start_timer", kwargs={"profile_id": self.profile.pk})
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_pause_timer(self):
+        """POST pause pauses a running timer."""
+        from trackable.timetracking.models import ActiveTimer
+        timer = ActiveTimer.objects.create(
+            profile=self.profile, user=self.user, start_time=timezone.now()
+        )
+        response = self.client.post(
+            reverse("pause_timer", kwargs={"profile_id": self.profile.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "paused")
+        timer.refresh_from_db()
+        self.assertTrue(timer.is_paused)
+
+    def test_pause_no_timer_returns_404(self):
+        """Pausing when no timer exists returns 404."""
+        response = self.client.post(
+            reverse("pause_timer", kwargs={"profile_id": self.profile.pk})
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_resume_timer(self):
+        """POST resume resumes a paused timer."""
+        from trackable.timetracking.models import ActiveTimer
+        timer = ActiveTimer.objects.create(
+            profile=self.profile,
+            user=self.user,
+            start_time=timezone.now(),
+            is_paused=True,
+            pause_time=timezone.now(),
+            total_paused_seconds=60,
+        )
+        response = self.client.post(
+            reverse("resume_timer", kwargs={"profile_id": self.profile.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "resumed")
+        timer.refresh_from_db()
+        self.assertFalse(timer.is_paused)
+
+    def test_resume_not_paused_returns_400(self):
+        """Resuming a non-paused timer returns 400."""
+        from trackable.timetracking.models import ActiveTimer
+        ActiveTimer.objects.create(
+            profile=self.profile, user=self.user, start_time=timezone.now()
+        )
+        response = self.client.post(
+            reverse("resume_timer", kwargs={"profile_id": self.profile.pk})
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_stop_timer_creates_time_entry(self):
+        """POST stop creates a TimeEntry and deletes the ActiveTimer."""
+        from trackable.timetracking.models import ActiveTimer, TimeEntry
+        timer = ActiveTimer.objects.create(
+            profile=self.profile, user=self.user, start_time=timezone.now()
+        )
+        response = self.client.post(
+            reverse("stop_timer", kwargs={"profile_id": self.profile.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "stopped")
+        self.assertIn("hours_worked", data)
+        self.assertTrue(TimeEntry.objects.filter(profile=self.profile).exists())
+        self.assertFalse(ActiveTimer.objects.filter(profile=self.profile).exists())
+
+    def test_stop_no_timer_returns_404(self):
+        """Stopping when no timer exists returns 404."""
+        response = self.client.post(
+            reverse("stop_timer", kwargs={"profile_id": self.profile.pk})
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_timer_status_no_timer(self):
+        """GET status returns has_timer: false when no timer is running."""
+        response = self.client.get(
+            reverse("timer_status", kwargs={"profile_id": self.profile.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertFalse(data["has_timer"])
+
+    def test_timer_status_with_running_timer(self):
+        """GET status returns timer state for a running timer."""
+        from trackable.timetracking.models import ActiveTimer
+        start = timezone.now()
+        ActiveTimer.objects.create(
+            profile=self.profile, user=self.user, start_time=start
+        )
+        response = self.client.get(
+            reverse("timer_status", kwargs={"profile_id": self.profile.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["has_timer"])
+        self.assertFalse(data["is_paused"])
+        self.assertIn("elapsed_seconds", data)
+
+    def test_timer_status_with_paused_timer(self):
+        """GET status returns is_paused: true for a paused timer."""
+        from trackable.timetracking.models import ActiveTimer
+        ActiveTimer.objects.create(
+            profile=self.profile,
+            user=self.user,
+            start_time=timezone.now(),
+            is_paused=True,
+            pause_time=timezone.now(),
+            total_paused_seconds=120,
+        )
+        response = self.client.get(
+            reverse("timer_status", kwargs={"profile_id": self.profile.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["has_timer"])
+        self.assertTrue(data["is_paused"])
+
+    def test_start_timer_requires_post(self):
+        """GET request to start endpoint is rejected."""
+        response = self.client.get(
+            reverse("start_timer", kwargs={"profile_id": self.profile.pk})
+        )
+        self.assertEqual(response.status_code, 405)  # Method Not Allowed
+
