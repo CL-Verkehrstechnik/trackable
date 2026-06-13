@@ -232,6 +232,56 @@ def set_target_hours(request, user_id, profile_id):
 
 @login_required
 @org_manager_required
+@require_http_methods(["POST"])
+def set_contract_dates(request, user_id, profile_id):
+    """Set contract_start_date and contract_end_date for a profile."""
+    membership = request.user.organization_membership
+    organization = membership.organization
+
+    employee_membership = get_object_or_404(
+        OrganizationMembership,
+        organization=organization,
+        user_id=user_id,
+    )
+    employee = employee_membership.user
+    profile = get_object_or_404(Profile, pk=profile_id, user=employee)
+
+    from datetime import date
+
+    start_str = request.POST.get("contract_start_date", "").strip()
+    end_str = request.POST.get("contract_end_date", "").strip()
+
+    if start_str:
+        try:
+            profile.contract_start_date = date.fromisoformat(start_str)
+        except (ValueError, TypeError):
+            messages.error(request, _("Invalid date format for contract start date."))
+            return redirect("employee_profile_detail", user_id=user_id, profile_id=profile_id)
+    else:
+        profile.contract_start_date = None
+
+    if end_str:
+        try:
+            profile.contract_end_date = date.fromisoformat(end_str)
+        except (ValueError, TypeError):
+            messages.error(request, _("Invalid date format for contract end date."))
+            return redirect("employee_profile_detail", user_id=user_id, profile_id=profile_id)
+    else:
+        profile.contract_end_date = None
+
+    # Validate: end date must be after start date
+    if (profile.contract_start_date and profile.contract_end_date
+            and profile.contract_end_date < profile.contract_start_date):
+        messages.error(request, _("Contract end date must be after start date."))
+        return redirect("employee_profile_detail", user_id=user_id, profile_id=profile_id)
+
+    profile.save()
+    messages.success(request, _("Contract dates updated."))
+    return redirect("employee_profile_detail", user_id=user_id, profile_id=profile_id)
+
+
+@login_required
+@org_manager_required
 def employee_profile_detail(request, user_id, profile_id):
     membership = request.user.organization_membership
     organization = membership.organization

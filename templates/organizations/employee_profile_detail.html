@@ -46,8 +46,34 @@
         {% else %}
             <em style="color:var(--ctp-overlay2);">({% trans "open-ended" %})</em>
         {% endif %}
+        <a href="#" onclick="document.getElementById('contract-dates-form').style.display='block'; this.style.display='none'; return false;"
+           style="margin-left:10px; font-size:.85rem; color:var(--ctp-blue); cursor:pointer;">✏ {% trans "Edit" %}</a>
+    </p>
+    {% else %}
+    <p style="color:var(--ctp-subtext0); margin-bottom:5px; margin-top:10px;">
+        <strong>{% trans "Contract" %}:</strong>
+        <em style="color:var(--ctp-overlay2);">{% trans "No contract dates set" %}</em>
+        <a href="#" onclick="document.getElementById('contract-dates-form').style.display='block'; this.style.display='none'; return false;"
+           style="margin-left:10px; font-size:.85rem; color:var(--ctp-blue); cursor:pointer;">+ {% trans "Set" %}</a>
     </p>
     {% endif %}
+    <form id="contract-dates-form" method="post" action="/org/employees/{{ employee.id }}/profiles/{{ profile.id }}/set-contract-dates/"
+          style="display:none; margin-top:10px;">
+        {% csrf_token %}
+        <label style="color:var(--ctp-subtext0); font-size:.85rem;">{% trans "Contract start" %}:</label>
+        <input type="date" name="contract_start_date"
+               value="{% if profile.contract_start_date %}{{ profile.contract_start_date|date:'Y-m-d' }}{% endif %}"
+               style="padding:6px 10px; border-radius:6px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text); margin:0 8px 0 4px; width:150px;">
+        <label style="color:var(--ctp-subtext0); font-size:.85rem;">{% trans "End" %}:</label>
+        <input type="date" name="contract_end_date"
+               value="{% if profile.contract_end_date %}{{ profile.contract_end_date|date:'Y-m-d' }}{% endif %}"
+               style="padding:6px 10px; border-radius:6px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text); margin:0 8px 0 4px; width:150px;">
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+        <button type="button" class="btn btn-secondary btn-sm"
+                onclick="this.closest('form').style.display='none'; document.querySelector('[onclick*=\'contract-dates-form\']').style.display='inline'; return false;">
+            {% trans "Cancel" %}
+        </button>
+    </form>
 </div>
 
 {% if available_months|length > 1 %}
