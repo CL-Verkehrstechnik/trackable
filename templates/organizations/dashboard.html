@@ -33,7 +33,7 @@
             <span style="font-size:.9rem; font-weight:600;">{% trans "Time tracking mode" %}
                 <span class="help-icon" title="{% trans "In restricted mode, employees can only record time via the start/stop timer. Managers retain full access." %}" tabindex="0">ⓘ</span>
             </span>
-            <form method="post" action="/org/toggle-timer-mode/" style="display:inline;">
+            <form method="post" action="/org/toggle-time-tracking-mode/" style="display:inline;">
                 {% csrf_token %}
                 <select name="mode" onchange="this.form.submit()"
                         style="padding:6px 12px; border-radius:8px;
