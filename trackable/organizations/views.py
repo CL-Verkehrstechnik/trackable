@@ -120,8 +120,10 @@ def employee_create(request):
                 user=user,
                 title=_("Employee at %(org)s") % {"org": organization.name},
                 position=_("Employee"),
-                weekly_hours=40,
+                weekly_hours=form.cleaned_data["weekly_hours"],
                 hourly_rate=0,
+                contract_start_date=form.cleaned_data.get("contract_start_date"),
+                contract_end_date=form.cleaned_data.get("contract_end_date"),
             )
             messages.success(
                 request,

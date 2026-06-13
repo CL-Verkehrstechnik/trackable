@@ -37,6 +37,17 @@
             {% trans "Cancel" %}
         </button>
     </form>
+    {% if profile.contract_start_date %}
+    <p style="color:var(--ctp-subtext0); margin-bottom:5px; margin-top:10px;">
+        <strong>{% trans "Contract" %}:</strong>
+        {{ profile.contract_start_date|date:"d.m.Y" }}
+        {% if profile.contract_end_date %}
+            – {{ profile.contract_end_date|date:"d.m.Y" }}
+        {% else %}
+            <em style="color:var(--ctp-overlay2);">({% trans "open-ended" %})</em>
+        {% endif %}
+    </p>
+    {% endif %}
 </div>
 
 {% if available_months|length > 1 %}

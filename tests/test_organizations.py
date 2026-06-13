@@ -98,6 +98,7 @@ class OrganizationViewTest(TestCase):
                 "last_name": "Employee",
                 "temp_password": "temppass123",
                 "temp_password_confirm": "temppass123",
+                "weekly_hours": "40",
             },
         )
         self.assertEqual(response.status_code, 302)
@@ -106,6 +107,68 @@ class OrganizationViewTest(TestCase):
         membership = OrganizationMembership.objects.get(user=user)
         self.assertEqual(membership.role, "employee")
         self.assertEqual(membership.organization, self.org)
+
+    def test_employee_create_with_contract_dates(self):
+        response = self.client.post(
+            reverse("employee_create"),
+            {
+                "username": "contremp",
+                "email": "contremp@example.com",
+                "first_name": "Contract",
+                "last_name": "Emp",
+                "temp_password": "temppass123",
+                "temp_password_confirm": "temppass123",
+                "weekly_hours": "35",
+                "contract_start_date": "2026-06-01",
+                "contract_end_date": "2026-12-31",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        user = User.objects.get(username="contremp")
+        profile = user.profiles.first()
+        self.assertIsNotNone(profile)
+        self.assertEqual(float(profile.weekly_hours), 35.0)
+        self.assertEqual(profile.contract_start_date.isoformat(), "2026-06-01")
+        self.assertEqual(profile.contract_end_date.isoformat(), "2026-12-31")
+
+    def test_employee_create_end_before_start_fails(self):
+        response = self.client.post(
+            reverse("employee_create"),
+            {
+                "username": "bademp",
+                "email": "bademp@example.com",
+                "first_name": "Bad",
+                "last_name": "Emp",
+                "temp_password": "temppass123",
+                "temp_password_confirm": "temppass123",
+                "weekly_hours": "40",
+                "contract_start_date": "2026-12-01",
+                "contract_end_date": "2026-06-01",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Contract end date must be after start date")
+
+    def test_employee_create_without_contract_dates(self):
+        """Contract dates are optional – create employee without them."""
+        response = self.client.post(
+            reverse("employee_create"),
+            {
+                "username": "noctremp",
+                "email": "noctremp@example.com",
+                "first_name": "No",
+                "last_name": "Contract",
+                "temp_password": "temppass123",
+                "temp_password_confirm": "temppass123",
+                "weekly_hours": "40",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        user = User.objects.get(username="noctremp")
+        profile = user.profiles.first()
+        self.assertIsNotNone(profile)
+        self.assertIsNone(profile.contract_start_date)
+        self.assertIsNone(profile.contract_end_date)
 
     def test_employee_detail(self):
         employee = User.objects.create_user(

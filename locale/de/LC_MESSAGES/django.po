@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: trackable\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-13 16:34+0200\n"
+"POT-Creation-Date: 2026-06-13 18:52+0200\n"
 "PO-Revision-Date: 2026-02-27 00:00+0100\n"
 "Last-Translator: webCommits\n"
 "Language-Team: de\n"
@@ -23,7 +23,7 @@ msgstr "Anmelden"
 # accounts/login.html
 #: templates/accounts/login.html:18 templates/accounts/register.html:18
 #: templates/organizations/employee_create.html:19
-#: trackable/organizations/forms.py:62
+#: trackable/organizations/forms.py:80
 msgid "Username"
 msgstr "Benutzername"
 
@@ -64,7 +64,7 @@ msgstr "Passwort zurücksetzen"
 #: templates/accounts/password_reset.html:11
 #: templates/accounts/register.html:23
 #: templates/organizations/employee_create.html:24
-#: trackable/organizations/forms.py:63
+#: trackable/organizations/forms.py:81
 msgid "E-Mail"
 msgstr "E-Mail"
 
@@ -93,13 +93,13 @@ msgstr "Passwort ändern"
 
 #: templates/accounts/register.html:28
 #: templates/organizations/employee_create.html:29
-#: trackable/organizations/forms.py:64
+#: trackable/organizations/forms.py:82
 msgid "First name"
 msgstr "Vorname"
 
 #: templates/accounts/register.html:33
 #: templates/organizations/employee_create.html:34
-#: trackable/organizations/forms.py:65
+#: trackable/organizations/forms.py:83
 msgid "Last name"
 msgstr "Nachname"
 
@@ -531,15 +531,16 @@ msgid "Cancel"
 msgstr "Abbrechen"
 
 # timetracking/home.html
+# #, fuzzy
 #: templates/organizations/branding.html:36
-##, fuzzy
-#| msgid "Overview"
 msgid "Preview"
 msgstr "Vorschau"
 
 #: templates/organizations/branding.html:38
 msgid "To see your branding changes, save and reload any page."
-msgstr "Um Ihre Änderungen zu sehen, speichern Sie und laden Sie eine beliebige Seite neu."
+msgstr ""
+"Um Ihre Änderungen zu sehen, speichern Sie und laden Sie eine beliebige "
+"Seite neu."
 
 #: templates/organizations/create.html:3 templates/organizations/create.html:15
 #: templates/timetracking/home.html:65
@@ -689,11 +690,29 @@ msgstr "Neues Passwort"
 msgid "Confirm temporary password"
 msgstr "Passwort bestätigen"
 
-#: templates/organizations/employee_create.html:48
+#: templates/organizations/employee_create.html:49
+#: templates/profiles/create.html:26 templates/profiles/detail.html:27
+#: trackable/organizations/forms.py:59 trackable/profiles/forms.py:14
+msgid "Weekly hours"
+msgstr "Wochenstunden"
+
+#: templates/organizations/employee_create.html:55
+#: trackable/organizations/forms.py:64
+#, fuzzy
+#| msgid "Start date"
+msgid "Contract start date"
+msgstr "Startdatum"
+
+#: templates/organizations/employee_create.html:61
+#: trackable/organizations/forms.py:70
+msgid "Contract end date"
+msgstr "Vertragsende"
+
+#: templates/organizations/employee_create.html:67
 #, fuzzy
 #| msgid "Create profile"
 msgid "Create employee"
-msgstr "Profil erstellen"
+msgstr "Mitarbeiter erstellen"
 
 #: templates/organizations/employee_dashboard.html:3
 msgid "My Organization"
@@ -741,7 +760,7 @@ msgid "Actual"
 msgstr "Ist"
 
 #: templates/organizations/employee_detail.html:37
-#: templates/organizations/employee_profile_detail.html:69
+#: templates/organizations/employee_profile_detail.html:80
 #: templates/profiles/detail.html:63
 #: templates/timetracking/monthly_table.html:39
 msgid "Balance"
@@ -798,46 +817,54 @@ msgstr "vom Profil"
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: templates/organizations/employee_profile_detail.html:44
+#: templates/organizations/employee_profile_detail.html:42
+msgid "Contract"
+msgstr ""
+
+#: templates/organizations/employee_profile_detail.html:47
+msgid "open-ended"
+msgstr "unbefristet"
+
+#: templates/organizations/employee_profile_detail.html:55
 msgid "Month"
 msgstr ""
 
-#: templates/organizations/employee_profile_detail.html:57
+#: templates/organizations/employee_profile_detail.html:68
 #: templates/timetracking/monthly_table.html:27
 msgid "Total hours"
 msgstr "Gesamtstunden"
 
-#: templates/organizations/employee_profile_detail.html:61
+#: templates/organizations/employee_profile_detail.html:72
 #: templates/timetracking/monthly_table.html:31
 msgid "Total earnings"
 msgstr "Gesamtverdienst"
 
-#: templates/organizations/employee_profile_detail.html:65
+#: templates/organizations/employee_profile_detail.html:76
 #: templates/timetracking/monthly_table.html:35
 msgid "Target hours"
 msgstr "Soll-Stunden"
 
-#: templates/organizations/employee_profile_detail.html:77
+#: templates/organizations/employee_profile_detail.html:88
 #: templates/timetracking/monthly_table.html:47
 #: templates/timetracking/vacation_overview.html:36
 msgid "Vacation days"
 msgstr "Urlaubstage"
 
-#: templates/organizations/employee_profile_detail.html:83
+#: templates/organizations/employee_profile_detail.html:94
 #: templates/timetracking/monthly_table.html:54
 msgid "Working hours"
 msgstr "Arbeitsstunden"
 
-#: templates/organizations/employee_profile_detail.html:88
+#: templates/organizations/employee_profile_detail.html:99
 #: templates/organizations/holiday_form.html:12
 #: templates/organizations/holiday_list.html:34
 #: templates/timetracking/add_entry.html:26
 #: templates/timetracking/monthly_table.html:59 trackable/core/pdf_export.py:53
-#: trackable/organizations/forms.py:90 trackable/timetracking/forms.py:11
+#: trackable/organizations/forms.py:114 trackable/timetracking/forms.py:11
 msgid "Date"
 msgstr "Datum"
 
-#: templates/organizations/employee_profile_detail.html:89
+#: templates/organizations/employee_profile_detail.html:100
 #: templates/organizations/team_calendar.html:374
 #: templates/timetracking/home.html:41
 #: templates/timetracking/monthly_table.html:60
@@ -846,63 +873,63 @@ msgstr "Datum"
 msgid "Start"
 msgstr "Start"
 
-#: templates/organizations/employee_profile_detail.html:90
+#: templates/organizations/employee_profile_detail.html:101
 #: templates/timetracking/monthly_table.html:61
 #: templates/timetracking/vacation_overview.html:58
 #: trackable/core/pdf_export.py:53
 msgid "End"
 msgstr "Ende"
 
-#: templates/organizations/employee_profile_detail.html:91
+#: templates/organizations/employee_profile_detail.html:102
 #: templates/timetracking/monthly_table.html:62 trackable/core/pdf_export.py:53
 msgid "Break"
 msgstr "Pause"
 
-#: templates/organizations/employee_profile_detail.html:92
+#: templates/organizations/employee_profile_detail.html:103
 #: templates/timetracking/monthly_table.html:63 trackable/core/pdf_export.py:53
 msgid "Hours"
 msgstr "Stunden"
 
-#: templates/organizations/employee_profile_detail.html:93
+#: templates/organizations/employee_profile_detail.html:104
 #: templates/timetracking/monthly_table.html:64 trackable/core/pdf_export.py:53
 msgid "Activity"
 msgstr "Tätigkeit"
 
-#: templates/organizations/employee_profile_detail.html:109
+#: templates/organizations/employee_profile_detail.html:120
 #: templates/timetracking/monthly_table.html:90
 msgid "No entries for this month."
 msgstr "Keine Einträge für diesen Monat vorhanden."
 
-#: templates/organizations/employee_profile_detail.html:118
+#: templates/organizations/employee_profile_detail.html:129
 #: templates/timetracking/monthly_table.html:100
 msgid "Vacation / Absence"
 msgstr "Urlaub / Abwesenheit"
 
-#: templates/organizations/employee_profile_detail.html:123
+#: templates/organizations/employee_profile_detail.html:134
 #: templates/timetracking/monthly_table.html:105
 msgid "Period"
 msgstr "Zeitraum"
 
-#: templates/organizations/employee_profile_detail.html:124
+#: templates/organizations/employee_profile_detail.html:135
 #: templates/timetracking/monthly_table.html:106
 #: templates/timetracking/vacation_overview.html:59
 msgid "Workdays"
 msgstr "Arbeitstage"
 
-#: templates/organizations/employee_profile_detail.html:125
+#: templates/organizations/employee_profile_detail.html:136
 #: templates/timetracking/monthly_table.html:107
 #: templates/timetracking/vacation_overview.html:60
 msgid "Weeks"
 msgstr "Wochen"
 
-#: templates/organizations/employee_profile_detail.html:126
+#: templates/organizations/employee_profile_detail.html:137
 #: templates/timetracking/add_vacation.html:31
 #: templates/timetracking/monthly_table.html:108
 #: templates/timetracking/vacation_overview.html:61
 msgid "Description"
 msgstr "Beschreibung"
 
-#: templates/organizations/employee_profile_detail.html:139
+#: templates/organizations/employee_profile_detail.html:150
 #: templates/timetracking/monthly_table.html:121
 #: templates/timetracking/vacation_overview.html:85
 msgid "Total"
@@ -941,7 +968,7 @@ msgid "Back to holidays"
 msgstr "Zurück zum Login"
 
 #: templates/organizations/holiday_form.html:16
-#: trackable/organizations/forms.py:91
+#: trackable/organizations/forms.py:115
 msgid "Holiday name"
 msgstr ""
 
@@ -1146,11 +1173,6 @@ msgstr "Jobtitel"
 #: templates/profiles/create.html:22 trackable/profiles/forms.py:13
 msgid "Address (optional)"
 msgstr "Adresse (optional)"
-
-#: templates/profiles/create.html:26 templates/profiles/detail.html:27
-#: trackable/profiles/forms.py:14
-msgid "Weekly hours"
-msgstr "Wochenstunden"
 
 #: templates/profiles/create.html:30 trackable/profiles/forms.py:15
 msgid "Hourly rate (€)"
@@ -1511,7 +1533,7 @@ msgstr "Ungültiges Datumsformat."
 
 #: trackable/organizations/calendar_views.py:270
 #: trackable/organizations/calendar_views.py:311
-#: trackable/organizations/views.py:402
+#: trackable/organizations/views.py:404
 msgid "Invalid date format."
 msgstr "Ungültiges Datumsformat."
 
@@ -1561,9 +1583,27 @@ msgid ""
 "allen Standard-Styles geladen."
 msgstr ""
 
+#: trackable/organizations/forms.py:61
+msgid "Standard working hours per week (e.g. 40)."
+msgstr "Standard-Wochenarbeitszeit (z. B. 40)."
+
+#: trackable/organizations/forms.py:67
+msgid "Target hours are calculated from this date."
+msgstr "Soll-Stunden werden ab diesem Datum berechnet."
+
 #: trackable/organizations/forms.py:73
+msgid "Optional. Leave empty for open-ended contracts."
+msgstr "Optional. Leer lassen bei unbefristeten Verträgen."
+
+#: trackable/organizations/forms.py:91
 msgid "Passwords do not match."
 msgstr ""
+
+#: trackable/organizations/forms.py:96
+#, fuzzy
+#| msgid "End date must be after start date."
+msgid "Contract end date must be after start date."
+msgstr "Das Enddatum muss nach dem Startdatum liegen."
 
 #: trackable/organizations/models.py:51
 msgid "Logo (Navbar)"
@@ -1583,7 +1623,8 @@ msgstr "Apple Touch Icon"
 
 #: trackable/organizations/models.py:64
 msgid "Empfohlen: 180×180 px, PNG. Wird auf dem iOS-Homescreen verwendet."
-msgstr "Empfohlen: 180×180 px, PNG. Wird auf dem iOS-Startbildschirm verwendet."
+msgstr ""
+"Empfohlen: 180×180 px, PNG. Wird auf dem iOS-Startbildschirm verwendet."
 
 #: trackable/organizations/models.py:69
 msgid "Primärfarbe"
@@ -1641,46 +1682,46 @@ msgstr "Zeiterfassungsmodus auf %(mode)s gesetzt."
 msgid "Employee at %(org)s"
 msgstr ""
 
-#: trackable/organizations/views.py:128
+#: trackable/organizations/views.py:130
 #, fuzzy, python-format
 #| msgid "Profile \"%(title)s\" was created successfully!"
 msgid "Employee \"%(name)s\" created successfully!"
 msgstr "Profil \"%(title)s\" wurde erfolgreich erstellt!"
 
-#: trackable/organizations/views.py:223
+#: trackable/organizations/views.py:225
 msgid "Invalid value for target hours."
 msgstr "Ungültiger Wert für Soll-Stunden."
 
-#: trackable/organizations/views.py:227
+#: trackable/organizations/views.py:229
 msgid "Weekly target hours updated."
 msgstr "Wöchentliche Soll-Stunden aktualisiert."
 
-#: trackable/organizations/views.py:393
+#: trackable/organizations/views.py:395
 msgid "Entry does not belong to your organization."
 msgstr "Eintrag gehört nicht zu Ihrer Organisation."
 
-#: trackable/organizations/views.py:397
+#: trackable/organizations/views.py:399
 msgid "new_date is required."
 msgstr "new_date ist erforderlich."
 
-#: trackable/organizations/views.py:425
+#: trackable/organizations/views.py:427
 #, python-format
 msgid "%(name)s has been removed from the organization."
 msgstr ""
 
-#: trackable/organizations/views.py:474
+#: trackable/organizations/views.py:476
 #, fuzzy, python-format
 #| msgid "Profile \"%(title)s\" was created successfully!"
 msgid "Holiday \"%(name)s\" added successfully!"
 msgstr "Profil \"%(title)s\" wurde erfolgreich erstellt!"
 
-#: trackable/organizations/views.py:496
+#: trackable/organizations/views.py:498
 #, fuzzy
 #| msgid "Profile was deleted."
 msgid "Holiday deleted."
 msgstr "Profil wurde gelöscht."
 
-#: trackable/organizations/views.py:508
+#: trackable/organizations/views.py:510
 msgid "Branding saved."
 msgstr "Design gespeichert."
 
@@ -1690,7 +1731,7 @@ msgstr ""
 
 #: trackable/profiles/forms.py:25
 msgid "Contract start, department, notes for payroll, …"
-msgstr ""
+msgstr "Vertragsbeginn, Abteilung, Notizen für die Lohnabrechnung, …"
 
 #: trackable/profiles/views.py:24
 #, python-format

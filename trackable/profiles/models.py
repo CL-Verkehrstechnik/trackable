@@ -15,6 +15,16 @@ class Profile(models.Model):
         help_text="Override target hours per week. If empty, uses weekly hours.",
     )
     hourly_rate = models.DecimalField(max_digits=10, decimal_places=2)
+    contract_start_date = models.DateField(
+        verbose_name="Contract start date",
+        null=True, blank=True,
+        help_text="Target hours are only calculated from this date onwards.",
+    )
+    contract_end_date = models.DateField(
+        verbose_name="Contract end date",
+        null=True, blank=True,
+        help_text="Optional. Target hours stop after this date.",
+    )
     internal_notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -68,6 +78,12 @@ class Profile(models.Model):
         for day in range(1, last_day + 1):
             d = date(year, month, day)
             if d.weekday() < 5 and d not in holiday_dates:
+                # Respect contract start date
+                if self.contract_start_date and d < self.contract_start_date:
+                    continue
+                # Respect contract end date
+                if self.contract_end_date and d > self.contract_end_date:
+                    continue
                 count += 1
         return count
 
