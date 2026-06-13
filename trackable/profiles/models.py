@@ -40,3 +40,46 @@ class Profile(models.Model):
     def get_monthly_earnings(self, year, month):
         hours = self.get_monthly_hours(year, month)
         return hours * self.hourly_rate
+
+    def _get_working_days_in_month(self, year, month):
+        """Count Mon–Fri days in a month excluding org-level holidays."""
+        import calendar
+        from datetime import date
+        from trackable.core.models import Holiday
+
+        org = getattr(self.user, "organization_membership", None)
+        org_obj = org.organization if org else None
+
+        _, last_day = calendar.monthrange(year, month)
+
+        holidays = Holiday.objects.filter(date__year=year, date__month=month)
+        if org_obj:
+            holidays = holidays.filter(
+                models.Q(organization=org_obj) | models.Q(organization__isnull=True)
+            )
+        holiday_dates = set(holidays.values_list("date", flat=True))
+
+        count = 0
+        for day in range(1, last_day + 1):
+            d = date(year, month, day)
+            if d.weekday() < 5 and d not in holiday_dates:
+                count += 1
+        return count
+
+    def get_target_hours(self, year, month):
+        """Target hours (Soll) for this profile in a given month.
+
+        Formula: weekly_hours / 5 × working_days_in_month
+        """
+        working_days = self._get_working_days_in_month(year, month)
+        daily_hours = float(self.weekly_hours) / 5
+        return round(daily_hours * working_days, 2)
+
+    def get_balance(self, year, month):
+        """Balance = actual hours − target hours.
+
+        Positive = overtime (Überstunden), negative = deficit (Minusstunden).
+        """
+        actual = self.get_monthly_hours(year, month)
+        target = self.get_target_hours(year, month)
+        return round(float(actual) - float(target), 2)

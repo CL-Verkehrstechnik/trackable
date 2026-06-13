@@ -52,14 +52,31 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
         {% for month in months %}
         <div class="card">
-            <h3 style="color: var(--ctp-mauve); margin-bottom: 15px;">{{ month.month_name }}</h3>
-            <p style="color: var(--ctp-subtext0); margin-bottom: 5px;">
-                <strong>{% trans "Working hours" %}:</strong> {{ month.hours|floatformat:2 }}h
-            </p>
-            <p style="color: var(--ctp-subtext0); margin-bottom: 15px;">
+            <h3 style="color:var(--ctp-mauve); margin-bottom:15px;">{{ month.month_name }}</h3>
+            <div style="display:flex; justify-content:space-between; gap:15px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:120px;">
+                    <p style="color:var(--ctp-subtext0); margin-bottom:3px;"><strong>{% trans "Target" %}:</strong> {{ month.target_hours|floatformat:2 }}h</p>
+                    <p style="color:var(--ctp-subtext0); margin-bottom:3px;"><strong>{% trans "Actual" %}:</strong> {{ month.hours|floatformat:2 }}h</p>
+                </div>
+                <div style="flex:1; min-width:120px; text-align:right;">
+                    <p style="margin-bottom:3px;">
+                        <strong>{% trans "Balance" %}:</strong>
+                        <span style="color:{% if month.balance > 0 %}var(--ctp-green){% elif month.balance < 0 %}var(--ctp-red){% else %}var(--ctp-subtext0){% endif %}; font-weight:bold;">
+                            {{ month.balance|floatformat:2 }}h
+                        </span>
+                    </p>
+                    <p style="margin-bottom:3px;">
+                        <strong>{% trans "Cumulative" %}:</strong>
+                        <span style="color:{% if month.cumulative_balance > 0 %}var(--ctp-green){% elif month.cumulative_balance < 0 %}var(--ctp-red){% else %}var(--ctp-subtext0){% endif %};">
+                            {{ month.cumulative_balance|floatformat:2 }}h
+                        </span>
+                    </p>
+                </div>
+            </div>
+            <p style="color:var(--ctp-subtext0); margin-bottom:15px; margin-top:10px;">
                 <strong>{% trans "Earnings" %}:</strong> €{{ month.earnings|floatformat:2 }}
             </p>
-            <a href="/table/{{ profile.id }}/{{ month.year }}/{{ month.month }}/" class="btn btn-primary" style="width: 100%;">
+            <a href="/table/{{ profile.id }}/{{ month.year }}/{{ month.month }}/" class="btn btn-primary" style="width:100%;">
                 {% trans "View details" %}
             </a>
         </div>

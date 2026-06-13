@@ -44,13 +44,20 @@ def profile_detail(request, pk):
     entry_months.add((current_date.year, current_date.month))
 
     months = []
+    cumulative_balance = 0
     for year, month in sorted(entry_months, reverse=True):
         hours = profile.get_monthly_hours(year, month)
+        target = profile.get_target_hours(year, month)
+        balance = profile.get_balance(year, month)
+        cumulative_balance += balance
         months.append({
             "year": year,
             "month": month,
             "month_name": datetime(year, month, 1).strftime("%B %Y"),
             "hours": hours,
+            "target_hours": target,
+            "balance": balance,
+            "cumulative_balance": cumulative_balance,
             "earnings": profile.get_monthly_earnings(year, month),
         })
 

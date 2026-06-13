@@ -130,6 +130,8 @@ def monthly_table(request, profile_id, year, month):
     )
     total_hours = profile.get_monthly_hours(year, month)
     total_earnings = profile.get_monthly_earnings(year, month)
+    target_hours = profile.get_target_hours(year, month)
+    balance = profile.get_balance(year, month)
     total_vacation_days = sum(v.workdays for v in vacation_entries)
     month_name = datetime(year, month, 1).strftime("%B %Y")
 
@@ -148,6 +150,8 @@ def monthly_table(request, profile_id, year, month):
             "month_name": month_name,
             "total_hours": total_hours,
             "total_earnings": total_earnings,
+            "target_hours": target_hours,
+            "balance": balance,
             "total_vacation_days": total_vacation_days,
             "show_actions": show_actions,
         },

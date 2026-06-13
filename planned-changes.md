@@ -86,12 +86,238 @@ Sechs Arbeitspakete:
 
 ---
 
-## Phasen 3–5: Kurzreferenz
+## Phase 3: Zeitkonto (Time Account) ⏳
 
-### Phase 3: Zeitkonto (Time Account)
-- `Profile.get_target_hours(year, month)` – Soll basierend auf `weekly_hours / 5 × Arbeitstage`
-- `Profile.get_balance(year, month)` – Ist − Soll (plus/minus)
-- Anzeige in Profil-Detail und Employee-Detail
+### Ziel
+Pro Profil wird für jeden Monat ein Zeitkonto berechnet:
+
+- **Soll-Stunden** = `weekly_hours / 5 × Arbeitstage` (Mo–Fr, abzgl. Feiertage der Organisation)
+- **Ist-Stunden** = gebuchte Stunden (bereits in `get_monthly_hours()`)
+- **Saldo (Balance)** = Ist − Soll (positiv = Überstunden, negativ = Minusstunden)
+- **Kumulierter Saldo** = aufsummiert über alle Monate (Vortrag)
+
+Farbcodierung: 🟢 positiv / 🔴 negativ / ⚪ ausgeglichen
+
+---
+
+### Ausführungsplan
+
+#### Schritt 1: Methoden auf `Profile`
+
+**Datei:** `trackable/profiles/models.py`
+
+```python
+from django.db import models
+from django.db.models import Q
+
+
+class Profile(models.Model):
+    # … bestehende Felder …
+    
+    def _get_working_days_in_month(self, year, month):
+        """Count Mon-Fri days in a month, excluding org holidays."""
+        import calendar
+        from datetime import date
+        from trackable.core.models import Holiday
+        
+        org = getattr(self.user, "organization_membership", None)
+        org_obj = org.organization if org else None
+        
+        _, last_day = calendar.monthrange(year, month)
+        
+        holidays = Holiday.objects.filter(date__year=year, date__month=month)
+        if org_obj:
+            holidays = holidays.filter(
+                Q(organization=org_obj) | Q(organization__isnull=True)
+            )
+        holiday_dates = set(holidays.values_list("date", flat=True))
+        
+        count = 0
+        for day in range(1, last_day + 1):
+            d = date(year, month, day)
+            if d.weekday() < 5 and d not in holiday_dates:
+                count += 1
+        return count
+    
+    def get_target_hours(self, year, month):
+        """Target hours (Soll) for the given month."""
+        working_days = self._get_working_days_in_month(year, month)
+        daily_hours = float(self.weekly_hours) / 5
+        return round(daily_hours * working_days, 2)
+    
+    def get_balance(self, year, month):
+        """Balance = actual hours − target hours for the month."""
+        actual = self.get_monthly_hours(year, month)
+        target = self.get_target_hours(year, month)
+        return round(float(actual) - float(target), 2)
+    
+    def get_target_hours_for_date_range(self, start_date, end_date):
+        """Target hours across an arbitrary date range (used for cumulative).
+        
+        Not needed initially – cumulative will sum per-month balances.
+        """
+        …
+```
+
+#### Schritt 2: Views aktualisieren
+
+**`trackable/profiles/views.py`** – `profile_detail()`:
+
+```python
+months = []
+cumulative_balance = 0
+for year, month in sorted(entry_months, reverse=True):
+    hours = profile.get_monthly_hours(year, month)
+    target = profile.get_target_hours(year, month)
+    balance = profile.get_balance(year, month)
+    cumulative_balance += balance
+    months.append({
+        "year": year,
+        "month": month,
+        "month_name": datetime(year, month, 1).strftime("%B %Y"),
+        "hours": hours,
+        "target_hours": target,
+        "balance": balance,
+        "cumulative_balance": cumulative_balance,
+        "earnings": profile.get_monthly_earnings(year, month),
+    })
+```
+
+**`trackable/organizations/views.py`**:
+- `employee_detail()`: Gleiche Logik wie profil_detail, füge target_hours und balance zu jedem month-dict hinzu
+- `employee_profile_detail()`: target_hours + balance in den Context geben
+
+**`trackable/timetracking/views.py`**:
+- `monthly_table()`: target_hours + balance in den Context geben
+- `employee_profile_detail()` (org view): gleiche Änderung
+
+#### Schritt 3: Templates aktualisieren
+
+**`templates/profiles/detail.html`**:
+
+```html
+<div class="card" style="text-align:center;">
+    <p style="color:var(--ctp-subtext0); margin-bottom:10px;">{% trans "Weekly hours" %}</p>
+    <p style="font-size:2rem; font-weight:bold; color:var(--ctp-mauve);">{{ profile.weekly_hours }}h</p>
+</div>
+<!-- … -->
+{% for month in months %}
+<div class="card">
+    <h3 style="color:var(--ctp-mauve); margin-bottom:15px;">{{ month.month_name }}</h3>
+    <p style="color:var(--ctp-subtext0); margin-bottom:5px;">
+        <strong>{% trans "Target hours" %}:</strong> {{ month.target_hours|floatformat:2 }}h
+    </p>
+    <p style="color:var(--ctp-subtext0); margin-bottom:5px;">
+        <strong>{% trans "Actual hours" %}:</strong> {{ month.hours|floatformat:2 }}h
+    </p>
+    <p style="color:var(--ctp-subtext0); margin-bottom:5px;">
+        <strong>{% trans "Balance" %}:</strong>
+        <span style="color:{% if month.balance > 0 %}var(--ctp-green){% elif month.balance < 0 %}var(--ctp-red){% else %}var(--ctp-subtext0){% endif %};
+                     font-weight:bold;">
+            {{ month.balance|floatformat:2 }}h
+        </span>
+    </p>
+    <p style="color:var(--ctp-subtext0); margin-bottom:15px;">
+        <strong>{% trans "Cumulative balance" %}:</strong>
+        <span style="color:{% if month.cumulative_balance > 0 %}var(--ctp-green){% elif month.cumulative_balance < 0 %}var(--ctp-red){% else %}var(--ctp-subtext0){% endif %};">
+            {{ month.cumulative_balance|floatformat:2 }}h
+        </span>
+    </p>
+    <!-- earnings, detail link … -->
+</div>
+{% endfor %}
+```
+
+**`templates/organizations/employee_detail.html`**: Gleiches Muster für jeden Monat.
+
+**`templates/organizations/employee_profile_detail.html`**:
+
+```html
+<div class="card" style="text-align:center;">
+    <p style="color:var(--ctp-subtext0); margin-bottom:10px;">{% trans "Total hours" %}</p>
+    <p style="font-size:2.5rem; font-weight:bold; color:var(--ctp-mauve);">{{ total_hours|floatformat:2 }}h</p>
+</div>
+<div class="card" style="text-align:center;">
+    <p style="color:var(--ctp-subtext0); margin-bottom:10px;">{% trans "Target hours" %}</p>
+    <p style="font-size:2rem; font-weight:bold; color:var(--ctp-blue);">{{ target_hours|floatformat:2 }}h</p>
+</div>
+<div class="card" style="text-align:center;">
+    <p style="color:var(--ctp-subtext0); margin-bottom:10px;">{% trans "Balance" %}</p>
+    <p style="font-size:2.5rem; font-weight:bold;
+              color:{% if balance > 0 %}var(--ctp-green){% elif balance < 0 %}var(--ctp-red){% else %}var(--ctp-subtext0){% endif %};">
+        {{ balance|floatformat:2 }}h
+    </p>
+</div>
+```
+
+**`templates/timetracking/monthly_table.html`**: Ähnliche Karten oberhalb der Tabelle.
+
+#### Schritt 4: monthly_table View erweitern
+
+In `timetracking/views.py`:
+
+```python
+def monthly_table(request, profile_id, year, month):
+    # … bestehende Logik …
+    target_hours = profile.get_target_hours(year, month)
+    balance = profile.get_balance(year, month)
+    # in den Context aufnehmen
+```
+
+#### Schritt 5: i18n
+
+```bash
+uv run django-admin makemessages -l de
+# Neue Strings übersetzen: "Target hours", "Actual hours", "Balance",
+# "Cumulative balance", "Time account", "Overtime", "Hours"
+uv run django-admin compilemessages
+```
+
+#### Schritt 6: Tests
+
+**Datei:** `tests/test_profiles.py` (oder `tests/test_timetracking.py`):
+
+```python
+class TimeAccountTests(TestCase):
+    def setUp(self):
+        # 1 User + Profile mit weekly_hours=40
+        # 1 Organization + Membership
+        pass
+    
+    def test_get_target_hours_returns_correct_value(self):
+        # weekly_hours=40 → daily=8
+        # Mai 2026 hat z.B. 21 workdays → 8*21=168h
+        pass
+    
+    def test_get_target_hours_excludes_weekends(self):
+        pass
+    
+    def test_get_target_hours_excludes_holidays(self):
+        pass
+    
+    def test_get_balance_positive(self):
+        pass
+    
+    def test_get_balance_negative(self):
+        pass
+    
+    def test_get_balance_zero(self):
+        pass
+    
+    def test_profile_detail_shows_balance(self):
+        pass
+```
+
+#### Umsetzungsreihenfolge
+
+| # | Schritt | Dateien |
+|---|---------|--------|
+| 1 | Methoden auf Profile-Modell | `profiles/models.py` |
+| 2 | Views aktualisieren | `profiles/views.py`, `organizations/views.py`, `timetracking/views.py` |
+| 3 | Templates aktualisieren | `profiles/detail.html`, `organizations/employee_detail.html`, `organizations/employee_profile_detail.html`, `timetracking/monthly_table.html` |
+| 4 | i18n | `django.po` / `.mo` |
+| 5 | Tests | `tests/` |
+| 6 | Test-Suite | `make test` |
 
 ### Phase 4: PDF-Export mit Native Share
 - Neuer API-Endpunkt: `/api/export-pdf/<id>/<year>/<month>/` → Base64-JSON
