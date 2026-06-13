@@ -1,7 +1,7 @@
 # Planned Changes – trackable
 
 > Datum: 2026-06-13
-> Status: Phase 1 ✅ – Phase 2 ✅ – Phase 6 ⏳ Planung
+> Status: Phase 1 ✅ – Phase 2 ✅ – Phase 3 ✅ – Phase 6 ⏳ Planung
 > Branch: `main`
 
 ---
@@ -12,7 +12,7 @@ Sechs Arbeitspakete:
 
 1. ✅ **Shared Weekly Calendar (Team-Kalender)** – Abgeschlossen
 2. ✅ **Enhanced Role-Based Timer Mode** – Abgeschlossen
-3. ⏳ **Zeitkonto (Time Account)** – Soll-/Ist-Stunden-Balance pro Profil
+3. ✅ **Zeitkonto (Time Account)** – Abgeschlossen
 4. ⏳ **PDF-Export mit Native Share** – Web Share API für mobile Geräte
 5. ⏳ **Mobile UI/UX Audit** – Durchgehendes mobiles Design-Review
 6. 📋 **Company Branding (White-Label)** – Logo, Favicon, Farben, Custom CSS pro Organisation
@@ -86,7 +86,9 @@ Sechs Arbeitspakete:
 
 ---
 
-## Phase 3: Zeitkonto (Time Account) ⏳
+## Phase 3: Zeitkonto (Time Account) ✅
+
+**Status: Abgeschlossen – Commit `43aa6ef`**
 
 ### Ziel
 Pro Profil wird für jeden Monat ein Zeitkonto berechnet:
