@@ -13,7 +13,7 @@ Sechs Arbeitspakete:
 1. ✅ **Shared Weekly Calendar (Team-Kalender)** – Abgeschlossen
 2. ✅ **Enhanced Role-Based Timer Mode** – Abgeschlossen
 3. ✅ **Zeitkonto (Time Account)** – Abgeschlossen
-4. ⏳ **PDF-Export mit Native Share** – Web Share API für mobile Geräte
+4. 📋 **PDF-Export mit Native Share** – Web Share API für mobile Geräte (Plan fertig)
 5. ⏳ **Mobile UI/UX Audit** – Durchgehendes mobiles Design-Review
 6. 📋 **Company Branding (White-Label)** – Logo, Favicon, Farben, Custom CSS pro Organisation
 
@@ -42,6 +42,7 @@ Sechs Arbeitspakete:
   - Event-Editor-Modal (Title, Notes, Color-Picker, Day, Startzeit, Dauer)
   - Mobile-Responsive (kleinere Slots, kurze Wochentags-Labels)
 - **Dashboard-Button** "Team Calendar" neben bestehendem "Weekly Calendar"
+- **Zugriff für alle Org-Mitglieder** – Team-Kalender ist nicht auf Manager beschränkt (jeder mit Org-Membership kann Events sehen, anlegen und eigene bearbeiten/löschen)
 - **21 neue Tests** in `tests/test_calendar.py` (Model + API + View)
 - **99 Tests gesamt – alle grün**
 
@@ -118,6 +119,7 @@ Pro Profil wird für jeden Monat ein Zeitkonto berechnet:
 - **`profiles/views.py`**: `target_hours`, `balance`, `cumulative_balance` in month-dict
 - **`organizations/views.py`**: Gleiche Logik in `employee_detail()` und `employee_profile_detail()`
 - **`organizations/views.py`**: Neue `set_target_hours()` POST-View (nur Manager)
+- **`organizations/views.py`**: `employee_create()` legt jetzt **automatisch ein Standard-Profil** für den neuen Mitarbeiter an (Titel = „Employee at <Org-Name>”, Position = „Employee”, 40h/Woche)
 - **`timetracking/views.py`**: `target_hours` + `balance` im Context der `monthly_table()`
 
 #### URLs
@@ -168,9 +170,164 @@ Pro Profil wird für jeden Monat ein Zeitkonto berechnet:
 
 *(Siehe Commits `43aa6ef` + `328b63d` für die vollständige Implementierung)*
 
-### Phase 4: PDF-Export mit Native Share
-- Neuer API-Endpunkt: `/api/export-pdf/<id>/<year>/<month>/` → Base64-JSON
-- Frontend: `navigator.share()` für PDF-Blob, Fallback Download
+## Phase 4: PDF-Export mit Native Share ⏳
+
+### Ziel
+PDF-Export auf mobilen Geräten soll das native **Share-Sheet** des Betriebssystems öffnen (iOS/Android), statt die PDF direkt im Browser anzuzeigen. So kann der Nutzer die PDF teilen (Mail, WhatsApp, AirDrop, …) oder speichern.
+
+- **Web Share API** (`navigator.share()`) für kompatible Geräte
+- **Fallback**: Direkter Download (wie bisher) auf Desktop-Browsern
+- PDF wird serverseitig erzeugt (bestehende Logik via reportlab)
+
+---
+
+### Ausführungsplan
+
+#### Schritt 1: API-Endpoint für Base64-PDF
+
+**Neu:** `trackable/core/api_views.py` (oder in `timetracking/views.py`)
+
+```python
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def api_export_pdf(request, profile_id, year, month):
+    """Generiert PDF, gibt Base64 + Dateiname als JSON zurück."""
+    profile = get_object_or_404(Profile, pk=profile_id, user=request.user)
+    
+    # Bestehende PDF-Generierung nutzen (aus timetracking/views.py export_pdf)
+    pdf_buffer = generate_pdf(profile, year, month)  # already exists
+    pdf_base64 = base64.b64encode(pdf_buffer.getvalue()).decode()
+    
+    filename = f"trackable_{profile.title}_{year}_{month}.pdf"
+    
+    return JsonResponse({
+        "pdf_base64": pdf_base64,
+        "filename": filename,
+        "mime_type": "application/pdf",
+    })
+```
+
+**Wichtig:** Bestehende PDF-Logik in `timetracking/views.py` (`export_pdf`) in eine wiederverwendbare Helper-Funktion extrahieren.
+
+#### Schritt 2: URL registrieren
+
+**`trackable/urls.py`**:
+
+```python
+path("api/export-pdf/<int:profile_id>/<int:year>/<int:month>/", api_views.api_export_pdf, name="api_export_pdf"),
+```
+
+#### Schritt 3: Frontend-JS für Web Share API
+
+**Neu/Erweitert:** `static/js/pdf_export.js`
+
+```javascript
+function exportAndShare(profileId, year, month) {
+    fetch(`/api/export-pdf/${profileId}/${year}/${month}/`)
+        .then(res => res.json())
+        .then(data => {
+            const byteCharacters = atob(data.pdf_base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'application/pdf' });
+            
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], data.filename, { type: 'application/pdf' })] })) {
+                // Web Share API with file (iOS/Android)
+                navigator.share({
+                    title: data.filename,
+                    files: [new File([blob], data.filename, { type: 'application/pdf' })],
+                }).catch(err => console.warn('Share failed', err));
+            } else if (navigator.share) {
+                // Fallback: share without file (URL-based)
+                const url = URL.createObjectURL(blob);
+                navigator.share({ url }).catch(() => {
+                    window.open(url, '_blank');
+                });
+            } else {
+                // Desktop-Fallback: PDF in neuem Tab öffnen
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            }
+        })
+        .catch(err => {
+            console.error('Export failed', err);
+            alert('Export fehlgeschlagen.');
+        });
+}
+```
+
+#### Schritt 4: Export-Buttons aktualisieren
+
+In `templates/timetracking/monthly_table.html` den bestehenden PDF-Export-Button ändern:
+
+```html
+<button onclick="exportAndShare({{ profile.id }}, {{ year }}, {{ month }})" class="btn btn-primary">
+    📄 {% trans "Export PDF" %}
+</button>
+```
+
+Statt direktem Link zu `/export/…/`.
+
+**`templates/profiles/detail.html`**: Gleicher Button (falls vorhanden).
+
+#### Schritt 5: Fallback für Drucken/Desktop
+
+Für Desktop-Nutzer ohne Share-API: PDF in neuem Tab öffnen (wie bisher).
+
+Die bestehende `/export/<profile_id>/<year>/<month>/`-Route bleibt erhalten und wird als Fallback genutzt.
+
+#### Schritt 6: i18n
+
+Keine neuen Übersetzungen nötig (bestehende Strings).
+
+#### Schritt 7: Tests
+
+```python
+def test_api_export_pdf_returns_base64(self):
+    self.client.login(username="testuser", password="test123")
+    response = self.client.get(
+        reverse("api_export_pdf", kwargs={
+            "profile_id": self.profile.id,
+            "year": 2026,
+            "month": 5,
+        })
+    )
+    self.assertEqual(response.status_code, 200)
+    data = response.json()
+    self.assertIn("pdf_base64", data)
+    self.assertIn("filename", data)
+    self.assertTrue(len(data["pdf_base64"]) > 0)
+
+def test_api_export_pdf_requires_login(self):
+    response = self.client.get(
+        reverse("api_export_pdf", kwargs={
+            "profile_id": self.profile.id,
+            "year": 2026,
+            "month": 5,
+        })
+    )
+    self.assertEqual(response.status_code, 302)  # Redirect to login
+
+def test_api_export_pdf_wrong_user_404(self):
+    # User A kann nicht PDF von User B exportieren
+    pass
+```
+
+#### Umsetzungsreihenfolge
+
+| # | Schritt | Dateien |
+|---|---------|--------|
+| 1 | PDF-Generierung in Helper extrahieren | `timetracking/views.py` → `core/pdf_export.py` |
+| 2 | API-Endpoint `api_export_pdf` | `core/api_views.py`, `urls.py` |
+| 3 | JS `pdf_export.js` | `static/js/pdf_export.js` |
+| 4 | Export-Buttons aktualisieren | `templates/timetracking/monthly_table.html` |
+| 5 | Tests | `tests/` |
+| 6 | Test-Suite | `make test` |
 
 ### Phase 5: Mobile UI/UX Audit
 - Touch-Targets (min 44px), Safe Areas, Tabellen-Scroll
