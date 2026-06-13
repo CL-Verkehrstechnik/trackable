@@ -3,6 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
 from trackable.core.admin_site import custom_admin_site
+from trackable.core import api_views
 
 
 def health_check(request):
@@ -17,6 +18,11 @@ urlpatterns = [
     path("profiles/", include("trackable.profiles.urls")),
     path("org/", include("trackable.organizations.urls")),
     path("", include("trackable.core.urls")),
+    path(
+        "api/export-pdf/<int:profile_id>/<int:year>/<int:month>/",
+        api_views.api_export_pdf,
+        name="api_export_pdf",
+    ),
 ]
 
 if settings.DEBUG:

@@ -564,3 +564,60 @@ class TimerAPITest(TestCase):
         )
         self.assertEqual(response.status_code, 405)  # Method Not Allowed
 
+
+class PdfExportApiTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="testuser", password="test123")
+        self.profile = Profile.objects.create(
+            user=self.user, title="Eng", position="Dev",
+            weekly_hours=40, hourly_rate=50,
+        )
+        TimeEntry.objects.create(
+            profile=self.profile, date=date(2026, 5, 4),
+            start_time=time(8, 0), end_time=time(12, 0), pause_duration=0,
+        )
+
+    def test_api_export_pdf_returns_base64(self):
+        self.client.login(username="testuser", password="test123")
+        r = self.client.get(
+            reverse("api_export_pdf",
+                    kwargs={"profile_id": self.profile.id, "year": 2026, "month": 5})
+        )
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertIn("pdf_base64", data)
+        import base64
+        decoded = base64.b64decode(data["pdf_base64"])
+        self.assertTrue(decoded.startswith(b"%PDF"))
+
+    def test_api_export_pdf_requires_login(self):
+        r = self.client.get(
+            reverse("api_export_pdf",
+                    kwargs={"profile_id": self.profile.id, "year": 2026, "month": 5})
+        )
+        self.assertEqual(r.status_code, 302)
+
+    def test_api_export_pdf_wrong_user_404(self):
+        other = User.objects.create_user(username="other", password="pass123")
+        op = Profile.objects.create(
+            user=other, title="O", position="X",
+            weekly_hours=40, hourly_rate=0,
+        )
+        self.client.login(username="testuser", password="test123")
+        r = self.client.get(
+            reverse("api_export_pdf",
+                    kwargs={"profile_id": op.id, "year": 2026, "month": 5})
+        )
+        self.assertEqual(r.status_code, 404)
+
+    def test_old_export_pdf_still_works(self):
+        self.client.login(username="testuser", password="test123")
+        r = self.client.get(
+            reverse("export_pdf",
+                    kwargs={"profile_id": self.profile.id, "year": 2026, "month": 5})
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r["Content-Type"], "application/pdf")
+        self.assertIn("Content-Disposition", r)
+

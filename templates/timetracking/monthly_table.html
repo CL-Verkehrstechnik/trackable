@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load static %}
 
 {% block title %}{{ month_name }} - {{ profile.title }}{% endblock %}
 
@@ -7,7 +8,9 @@
 <div class="content">
     <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 30px;">
         <a href="/profiles/{{ profile.id }}/" class="btn btn-secondary">← {% trans "Back to profile" %}</a>
-        <a href="/export/{{ profile.id }}/{{ year }}/{{ month }}/" class="btn btn-primary">{% trans "Export PDF" %}</a>
+        <button onclick="exportAndShare({{ profile.id }}, {{ year }}, {{ month }})" class="btn btn-primary">
+            📄 {% trans "Export PDF" %}
+        </button>
         <a href="/export-csv/{{ profile.id }}/{{ year }}/{{ month }}/" class="btn btn-secondary" style="color: var(--ctp-green); border-color: rgba(64,160,43,.3);">{% trans "Export CSV" %}</a>
     </div>
 
@@ -133,4 +136,8 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pdf_export.js' %}"></script>
 {% endblock %}

@@ -5,15 +5,9 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext as _g
-from reportlab.lib.pagesizes import landscape, A4
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.units import inch
 from datetime import datetime, timedelta
 import calendar
 import csv
-import io
 from datetime import time as time_obj
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -228,101 +222,14 @@ def vacation_overview(request, profile_id):
 @login_required
 def export_pdf(request, profile_id, year, month):
     profile = get_object_or_404(Profile, pk=profile_id, user=request.user)
-    time_entries = list(profile.get_monthly_entries(year, month).order_by("date"))
-    last_day = calendar.monthrange(year, month)[1]
-    vacation_entries = list(
-        profile.vacation_entries.filter(
-            start_date__lte=datetime(year, month, last_day).date(),
-            end_date__gte=datetime(year, month, 1).date(),
-        ).order_by("start_date")
-    )
-    total_hours = profile.get_monthly_hours(year, month)
-    total_earnings = profile.get_monthly_earnings(year, month)
-    total_vacation_days = sum(v.workdays for v in vacation_entries)
-    month_name = datetime(year, month, 1).strftime("%B %Y")
+    from trackable.core.pdf_export import generate_pdf_report
+
+    buffer = generate_pdf_report(profile, year, month)
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = (
         f'attachment; filename="arbeitszeiten_{profile.title}_{year}_{month}.pdf"'
     )
-
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4))
-    elements = []
-
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        "CustomTitle",
-        parent=styles["Heading1"],
-        fontSize=18,
-        textColor=colors.HexColor("#8839ef"),
-        spaceAfter=20,
-    )
-
-    elements.append(Paragraph(f"{profile.title} - {month_name}", title_style))
-    elements.append(Paragraph(f"{profile.position}", styles["Normal"]))
-    if profile.address:
-        elements.append(Paragraph(profile.address, styles["Normal"]))
-    elements.append(Spacer(1, 20))
-
-    # Time entries table
-    data = [
-        [_g("Date"), _g("Start"), _g("End"), _g("Break"), _g("Hours"), _g("Activity")]
-    ]
-    for entry in time_entries:
-        data.append(
-            [
-                entry.date.strftime("%d.%m.%Y"),
-                entry.start_time.strftime("%H:%M"),
-                entry.end_time.strftime("%H:%M"),
-                f"{entry.pause_duration}h",
-                f"{entry.hours_worked:.2f}h",
-                entry.notes or "",
-            ]
-        )
-
-    table = Table(
-        data, colWidths=[1 * inch, 1 * inch, 1 * inch, 1 * inch, 1 * inch, 4 * inch]
-    )
-    table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#8938eb")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-                ("GRID", (0, 0), (-1, -1), 1, colors.HexColor("#45475a")),
-            ]
-        )
-    )
-
-    elements.append(table)
-    elements.append(Spacer(1, 20))
-
-    totals_data = []
-    totals_data.append([_g("Total Hours") + ":", f"{total_hours:.2f}h"])
-    if total_earnings > 0:
-        totals_data.append([_g("Total Earnings") + ":", f"{total_earnings:.2f}"])
-    if total_vacation_days > 0:
-        totals_data.append([_g("Vacation Days") + ":", str(total_vacation_days)])
-
-    totals_table = Table(totals_data, colWidths=[2 * inch, 1.5 * inch], hAlign="RIGHT")
-    totals_table.setStyle(
-        TableStyle(
-            [
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
-                ("FONTSIZE", (0, 0), (-1, -1), 12),
-                ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#3b782c")),
-                ("ALIGN", (0, 0), (0, -1), "RIGHT"),
-                ("ALIGN", (1, 0), (1, -1), "RIGHT"),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-            ]
-        )
-    )
-    elements.append(totals_table)
-
-    doc.build(elements)
     response.write(buffer.getvalue())
     buffer.close()
 
