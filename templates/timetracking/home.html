@@ -45,7 +45,7 @@
             </div>
         </div>
         <div class="flex-row" style="gap:8px;">
-            {% if not org_timer_only %}
+            {% if can_edit %}
             <a href="/add-entry/{{ profile.id }}/" class="btn btn-primary btn-sm" style="flex:1; justify-content:center;">+ {% trans "Add time" %}</a>
             {% endif %}
             <a href="/profiles/{{ profile.id }}/" class="btn btn-secondary btn-sm">{% trans "Monthly overview" %}</a>

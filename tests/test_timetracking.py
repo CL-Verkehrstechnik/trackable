@@ -147,8 +147,8 @@ class TimeEntryViewTest(TestCase):
         self.assertEqual(response["Content-Type"], "application/pdf")
 
 
-class TimerOnlyBlockingTest(TestCase):
-    """Tests for timer-only mode blocking manual entries."""
+class TimeTrackingModeTest(TestCase):
+    """Tests for time-tracking mode (classic/restricted) blocking manual entries for employees."""
 
     def setUp(self):
         self.client = Client()
@@ -161,7 +161,7 @@ class TimerOnlyBlockingTest(TestCase):
         self.membership = OrganizationMembership.objects.create(
             organization=self.org, user=self.manager, role="manager"
         )
-        self.org.timer_only_mode = True
+        self.org.time_tracking_mode = "restricted"
         self.org.save()
 
         self.user = User.objects.create_user(
@@ -180,7 +180,7 @@ class TimerOnlyBlockingTest(TestCase):
         self.client.login(username="testuser", password="testpass123")
 
     def test_add_entry_blocked_in_timer_mode(self):
-        """Manual add_entry is blocked when timer-only mode is active."""
+        """Manual add_entry is blocked for employees when mode is restricted."""
         response = self.client.post(
             reverse("add_entry", kwargs={"profile_id": self.profile.pk}),
             {
@@ -195,7 +195,7 @@ class TimerOnlyBlockingTest(TestCase):
         self.assertFalse(TimeEntry.objects.filter(profile=self.profile).exists())
 
     def test_edit_entry_blocked_in_timer_mode(self):
-        """Edit entry is blocked when timer-only mode is active."""
+        """Edit entry is blocked for employees when mode is restricted."""
         entry = TimeEntry.objects.create(
             profile=self.profile,
             date=date.today(),
@@ -217,8 +217,8 @@ class TimerOnlyBlockingTest(TestCase):
         self.assertEqual(entry.start_time, time(9, 0))  # unchanged
 
     def test_add_entry_works_when_timer_mode_off(self):
-        """Manual add_entry works when timer-only mode is off."""
-        self.org.timer_only_mode = False
+        """Manual add_entry works when mode is classic."""
+        self.org.time_tracking_mode = "classic"
         self.org.save()
 
         response = self.client.post(
@@ -234,14 +234,14 @@ class TimerOnlyBlockingTest(TestCase):
         self.assertTrue(TimeEntry.objects.filter(profile=self.profile).exists())
 
     def test_home_hides_add_time_in_timer_mode(self):
-        """Home page does not show 'Add time' button in timer-only mode."""
+        """Home page does not show 'Add time' button for employees in restricted mode."""
         response = self.client.get(reverse("home"))
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "Add time")
 
     def test_home_shows_add_time_when_timer_mode_off(self):
-        """Home page shows 'Add time' button when timer-only mode is off."""
-        self.org.timer_only_mode = False
+        """Home page shows 'Add time' button when mode is classic."""
+        self.org.time_tracking_mode = "classic"
         self.org.save()
 
         response = self.client.get(reverse("home"))
@@ -249,7 +249,7 @@ class TimerOnlyBlockingTest(TestCase):
         self.assertContains(response, "Add time")
 
     def test_monthly_table_hides_actions_in_timer_mode(self):
-        """Monthly table does not show Edit/Delete in timer-only mode."""
+        """Monthly table hides Edit/Delete for employees in restricted mode."""
         today = date.today()
         TimeEntry.objects.create(
             profile=self.profile,
@@ -273,8 +273,8 @@ class TimerOnlyBlockingTest(TestCase):
         self.assertNotContains(response, "Delete")
 
     def test_monthly_table_shows_actions_when_timer_mode_off(self):
-        """Monthly table shows Edit/Delete when timer-only mode is off."""
-        self.org.timer_only_mode = False
+        """Monthly table shows Edit/Delete when mode is classic."""
+        self.org.time_tracking_mode = "classic"
         self.org.save()
 
         today = date.today()
@@ -290,6 +290,104 @@ class TimerOnlyBlockingTest(TestCase):
                 "monthly_table",
                 kwargs={
                     "profile_id": self.profile.pk,
+                    "year": today.year,
+                    "month": today.month,
+                },
+            )
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Edit")
+
+    def test_manager_can_add_in_restricted_mode(self):
+        """Manager can add entries even in restricted mode."""
+        self.client.login(username="manager", password="pass123")
+        # Manager needs own profile for add_entry
+        mgr_profile = Profile.objects.create(
+            user=self.manager,
+            title="Manager Profile",
+            position="Boss",
+            weekly_hours=40,
+            hourly_rate=100,
+        )
+        response = self.client.post(
+            reverse("add_entry", kwargs={"profile_id": mgr_profile.pk}),
+            {
+                "date": date.today(),
+                "start_time": "09:00",
+                "end_time": "17:00",
+                "pause_duration": 0.5,
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(TimeEntry.objects.filter(profile=mgr_profile).exists())
+
+    def test_manager_can_edit_in_restricted_mode(self):
+        """Manager can edit entries even in restricted mode."""
+        self.client.login(username="manager", password="pass123")
+        mgr_profile = Profile.objects.create(
+            user=self.manager,
+            title="Manager Profile",
+            position="Boss",
+            weekly_hours=40,
+            hourly_rate=100,
+        )
+        entry = TimeEntry.objects.create(
+            profile=mgr_profile,
+            date=date.today(),
+            start_time=time(9, 0),
+            end_time=time(17, 0),
+            pause_duration=0.5,
+        )
+        response = self.client.post(
+            reverse("edit_entry", kwargs={"pk": entry.pk}),
+            {
+                "date": date.today(),
+                "start_time": "10:00",
+                "end_time": "18:00",
+                "pause_duration": 1,
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        entry.refresh_from_db()
+        self.assertEqual(entry.start_time, time(10, 0))
+
+    def test_home_shows_add_time_for_manager_in_restricted_mode(self):
+        """Home page shows 'Add time' for manager even in restricted mode."""
+        self.client.login(username="manager", password="pass123")
+        mgr_profile = Profile.objects.create(
+            user=self.manager,
+            title="Manager Profile",
+            position="Boss",
+            weekly_hours=40,
+            hourly_rate=100,
+        )
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Add time")
+
+    def test_monthly_table_shows_actions_for_manager_in_restricted_mode(self):
+        """Monthly table shows Edit/Delete for manager even in restricted mode."""
+        self.client.login(username="manager", password="pass123")
+        mgr_profile = Profile.objects.create(
+            user=self.manager,
+            title="Manager Profile",
+            position="Boss",
+            weekly_hours=40,
+            hourly_rate=100,
+        )
+        today = date.today()
+        TimeEntry.objects.create(
+            profile=mgr_profile,
+            date=today,
+            start_time=time(9, 0),
+            end_time=time(17, 0),
+            pause_duration=0.5,
+        )
+        response = self.client.get(
+            reverse(
+                "monthly_table",
+                kwargs={
+                    "profile_id": mgr_profile.pk,
                     "year": today.year,
                     "month": today.month,
                 },

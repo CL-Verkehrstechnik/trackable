@@ -255,8 +255,8 @@ class OrganizationHolidayTest(TestCase):
         self.assertEqual(vacation.workdays, 2)
 
 
-class TimerOnlyModeTest(TestCase):
-    """Tests for timer-only mode feature (Phase 1)."""
+class TimeTrackingModeTest(TestCase):
+    """Tests for time-tracking mode (classic/restricted)."""
 
     def setUp(self):
         self.client = Client()
@@ -277,31 +277,31 @@ class TimerOnlyModeTest(TestCase):
         )
         self.client.login(username="manager", password="pass123")
 
-    def test_timer_only_mode_default_false(self):
-        """New organizations start with timer_only_mode=False."""
-        self.assertFalse(self.org.timer_only_mode)
+    def test_time_tracking_mode_default_classic(self):
+        """New organizations start with time_tracking_mode='classic'."""
+        self.assertEqual(self.org.time_tracking_mode, "classic")
 
-    def test_toggle_timer_mode_as_manager(self):
-        """Manager can toggle timer-only mode on and off."""
-        # Toggle ON
-        response = self.client.post(reverse("toggle_timer_mode"))
+    def test_toggle_time_tracking_mode_as_manager(self):
+        """Manager can toggle time-tracking mode between classic and restricted."""
+        # Toggle ON (classic -> restricted)
+        response = self.client.post(reverse("toggle_time_tracking_mode"))
         self.assertEqual(response.status_code, 302)
         self.org.refresh_from_db()
-        self.assertTrue(self.org.timer_only_mode)
+        self.assertEqual(self.org.time_tracking_mode, "restricted")
 
-        # Toggle OFF
-        response = self.client.post(reverse("toggle_timer_mode"))
+        # Toggle OFF (restricted -> classic)
+        response = self.client.post(reverse("toggle_time_tracking_mode"))
         self.assertEqual(response.status_code, 302)
         self.org.refresh_from_db()
-        self.assertFalse(self.org.timer_only_mode)
+        self.assertEqual(self.org.time_tracking_mode, "classic")
 
-    def test_toggle_timer_mode_as_employee_denied(self):
-        """Employee cannot toggle timer-only mode (redirected)."""
+    def test_toggle_time_tracking_mode_as_employee_denied(self):
+        """Employee cannot toggle time-tracking mode (redirected)."""
         self.client.login(username="employee", password="pass123")
-        response = self.client.post(reverse("toggle_timer_mode"))
+        response = self.client.post(reverse("toggle_time_tracking_mode"))
         self.assertEqual(response.status_code, 302)
         self.org.refresh_from_db()
-        self.assertFalse(self.org.timer_only_mode)  # unchanged
+        self.assertEqual(self.org.time_tracking_mode, "classic")  # unchanged
 
     def test_weekly_calendar_returns_200(self):
         """Weekly calendar view returns 200 for manager."""

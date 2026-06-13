@@ -11,6 +11,7 @@ from trackable.organizations.forms import (
     HolidayForm,
 )
 from trackable.organizations.decorators import org_manager_required
+from trackable.organizations.helpers import can_edit_time_entries
 from trackable.profiles.models import Profile
 from trackable.core.models import Holiday
 from trackable.accounts.models import User
@@ -80,15 +81,19 @@ def org_create(request):
 
 @login_required
 @org_manager_required
-def toggle_timer_mode(request):
+def toggle_time_tracking_mode(request):
     membership = request.user.organization_membership
     organization = membership.organization
-    organization.timer_only_mode = not organization.timer_only_mode
+    if organization.time_tracking_mode == "classic":
+        organization.time_tracking_mode = "restricted"
+        status = _("restricted")
+    else:
+        organization.time_tracking_mode = "classic"
+        status = _("classic")
     organization.save()
-    status = _("activated") if organization.timer_only_mode else _("deactivated")
     messages.success(
         request,
-        _('Timer-only mode %(status)s.') % {"status": status},
+        _("Time tracking mode set to %(mode)s.") % {"mode": status},
     )
     return redirect("org_dashboard")
 
@@ -314,7 +319,7 @@ def org_weekly_calendar(request):
             "prev_url": f"?year={prev_iso[0]}&week={prev_iso[1]}",
             "next_url": f"?year={next_iso[0]}&week={next_iso[1]}",
             "today_url": f"?year={today_iso[0]}&week={today_iso[1]}",
-            "timer_only": organization.timer_only_mode,
+            "timer_only": not can_edit_time_entries(request.user),
         },
     )
 

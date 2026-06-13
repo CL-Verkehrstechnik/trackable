@@ -30,23 +30,29 @@
     <h3 style="color:var(--ctp-mauve); margin-bottom:16px;">⚙️ {% trans "Team Settings" %}</h3>
     <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center;">
         <div style="display:flex; align-items:center; gap:12px;">
-            <span style="font-size:.9rem; font-weight:600;">{% trans "Timer only mode" %}
-                <span class="help-icon" title="{% trans "When active, employees can only record time via the start/stop timer. The 'Add time' button and manual entry form are hidden." %}" tabindex="0">ⓘ</span>
+            <span style="font-size:.9rem; font-weight:600;">{% trans "Time tracking mode" %}
+                <span class="help-icon" title="{% trans "In restricted mode, employees can only record time via the start/stop timer. Managers retain full access." %}" tabindex="0">ⓘ</span>
             </span>
             <form method="post" action="/org/toggle-timer-mode/" style="display:inline;">
                 {% csrf_token %}
-                <label class="toggle-switch">
-                    <input type="checkbox"
-                           onchange="this.form.submit()"
-                           {% if organization.timer_only_mode %}checked{% endif %}>
-                    <span class="toggle-slider"></span>
-                </label>
+                <select name="mode" onchange="this.form.submit()"
+                        style="padding:6px 12px; border-radius:8px;
+                               border:1px solid var(--ctp-overlay0);
+                               background:var(--ctp-mantle); color:var(--ctp-text);
+                               font-size:.9rem; cursor:pointer;">
+                    <option value="classic" {% if organization.time_tracking_mode == "classic" %}selected{% endif %}>
+                        🟢 {% trans "Classic – Full access" %}
+                    </option>
+                    <option value="restricted" {% if organization.time_tracking_mode == "restricted" %}selected{% endif %}>
+                        🔴 {% trans "Restricted – Timer only" %}
+                    </option>
+                </select>
             </form>
             <span style="font-size:.82rem; color:var(--ctp-subtext0);">
-                {% if organization.timer_only_mode %}
-                    🟢 {% trans "Active – Only timer entries allowed" %}
+                {% if organization.time_tracking_mode == "restricted" %}
+                    🔴 {% trans "Restricted – Timer only (managers can edit)" %}
                 {% else %}
-                    ⚪ {% trans "Inactive – Manual entries allowed" %}
+                    🟢 {% trans "Classic – Full CRUD access" %}
                 {% endif %}
             </span>
         </div>

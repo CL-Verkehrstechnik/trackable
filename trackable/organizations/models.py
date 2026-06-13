@@ -13,7 +13,15 @@ class Organization(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    timer_only_mode = models.BooleanField(default=False, verbose_name="Timer only mode")
+    time_tracking_mode = models.CharField(
+        max_length=20,
+        default="classic",
+        choices=[
+            ("classic", "Classic \u2013 Full CRUD access"),
+            ("restricted", "Restricted \u2013 Timer only (except managers)"),
+        ],
+        verbose_name="Time tracking mode",
+    )
 
     # Team Calendar Settings
     cal_week_starts_on = models.IntegerField(

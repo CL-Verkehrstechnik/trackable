@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: trackable\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-10 20:19+0200\n"
+"POT-Creation-Date: 2026-06-13 15:06+0200\n"
 "PO-Revision-Date: 2026-02-27 00:00+0100\n"
 "Last-Translator: webCommits\n"
 "Language-Team: de\n"
@@ -16,39 +16,39 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: templates/accounts/login.html:3 templates/accounts/login.html:7
-#: templates/base.html:59
+#: templates/base.html:65
 msgid "Login"
 msgstr "Anmelden"
 
 # accounts/login.html
-#: templates/accounts/login.html:11 templates/accounts/register.html:11
-#: templates/organizations/employee_create.html:12
+#: templates/accounts/login.html:18 templates/accounts/register.html:18
+#: templates/organizations/employee_create.html:19
 #: trackable/organizations/forms.py:29
 msgid "Username"
 msgstr "Benutzername"
 
-#: templates/accounts/login.html:15 templates/accounts/register.html:27
+#: templates/accounts/login.html:23 templates/accounts/register.html:38
 msgid "Password"
 msgstr "Passwort"
 
-#: templates/accounts/login.html:18 templates/accounts/register.html:37
+#: templates/accounts/login.html:27 templates/accounts/register.html:50
 #: templates/core/landing.html:27 templates/core/landing.html:168
 msgid "Log in"
 msgstr "Einloggen"
 
-#: templates/accounts/login.html:21
+#: templates/accounts/login.html:30
 msgid "Forgot your password?"
 msgstr "Passwort vergessen?"
 
-#: templates/accounts/login.html:24
+#: templates/accounts/login.html:33
 #, fuzzy
 #| msgid "Already have an account?"
 msgid "Don't have an account?"
 msgstr "Bereits ein Konto?"
 
-#: templates/accounts/login.html:24 templates/accounts/register.html:3
-#: templates/accounts/register.html:7 templates/accounts/register.html:34
-#: templates/base.html:60
+#: templates/accounts/login.html:33 templates/accounts/register.html:3
+#: templates/accounts/register.html:7 templates/accounts/register.html:47
+#: templates/base.html:66
 msgid "Register"
 msgstr "Registrieren"
 
@@ -62,17 +62,17 @@ msgstr "Passwort zurücksetzen"
 
 # accounts/register.html
 #: templates/accounts/password_reset.html:11
-#: templates/accounts/register.html:15
-#: templates/organizations/employee_create.html:16
+#: templates/accounts/register.html:23
+#: templates/organizations/employee_create.html:24
 #: trackable/organizations/forms.py:30
 msgid "E-Mail"
 msgstr "E-Mail"
 
-#: templates/accounts/password_reset.html:14
+#: templates/accounts/password_reset.html:15
 msgid "Send reset link"
 msgstr "Reset-Link senden"
 
-#: templates/accounts/password_reset.html:17
+#: templates/accounts/password_reset.html:18
 msgid "Back to login"
 msgstr "Zurück zum Login"
 
@@ -82,42 +82,46 @@ msgstr "Zurück zum Login"
 msgid "New password"
 msgstr "Neues Passwort"
 
-#: templates/accounts/password_reset_confirm.html:15
-#: templates/accounts/register.html:31
+#: templates/accounts/password_reset_confirm.html:16
+#: templates/accounts/register.html:43
 msgid "Confirm password"
 msgstr "Passwort bestätigen"
 
-#: templates/accounts/password_reset_confirm.html:18
+#: templates/accounts/password_reset_confirm.html:20
 msgid "Change password"
 msgstr "Passwort ändern"
 
-#: templates/accounts/register.html:19
-#: templates/organizations/employee_create.html:20
+#: templates/accounts/register.html:28
+#: templates/organizations/employee_create.html:29
 #: trackable/organizations/forms.py:31
 msgid "First name"
 msgstr "Vorname"
 
-#: templates/accounts/register.html:23
-#: templates/organizations/employee_create.html:24
+#: templates/accounts/register.html:33
+#: templates/organizations/employee_create.html:34
 #: trackable/organizations/forms.py:32
 msgid "Last name"
 msgstr "Nachname"
 
-#: templates/accounts/register.html:37
+#: templates/accounts/register.html:50
 msgid "Already have an account?"
 msgstr "Bereits ein Konto?"
 
 #: templates/accounts/settings.html:3 templates/accounts/settings.html:8
-#: templates/base.html:52
+#: templates/base.html:58
 msgid "Settings"
 msgstr "Einstellungen"
 
+#: templates/accounts/settings.html:9
+msgid "Manage your personal preferences and notification settings."
+msgstr ""
+
 # accounts/settings.html
-#: templates/accounts/settings.html:15
+#: templates/accounts/settings.html:16
 msgid "Enable monthly email reports"
 msgstr "Monatliche E-Mail-Berichte aktivieren"
 
-#: templates/accounts/settings.html:16
+#: templates/accounts/settings.html:17
 msgid ""
 "You will receive an automated email on the last day of each month with a "
 "summary of all your working hours."
@@ -125,7 +129,8 @@ msgstr ""
 "Sie erhalten am letzten Tag jedes Monats automatisch eine E-Mail mit einer "
 "Zusammenfassung aller Arbeitszeiten."
 
-#: templates/accounts/settings.html:20
+#: templates/accounts/settings.html:21
+#: templates/organizations/team_calendar.html:370
 msgid "Save"
 msgstr "Speichern"
 
@@ -185,40 +190,44 @@ msgstr "trackable. – Deine persönliche Arbeitszeiterfassung."
 msgid "Time Tracking"
 msgstr "Zeiterfassung"
 
-#: templates/base.html:32
+#: templates/base.html:27
+msgid "Skip to main content"
+msgstr ""
+
+#: templates/base.html:38
 msgid "Switch to light mode"
 msgstr "Zum hellen Design wechseln"
 
-#: templates/base.html:41
+#: templates/base.html:47
 msgid "Open menu"
 msgstr "Menü öffnen"
 
-#: templates/base.html:47
+#: templates/base.html:53
 msgid "Dashboard"
 msgstr "Dashboard"
 
-#: templates/base.html:48 templates/profiles/list.html:3
+#: templates/base.html:54 templates/profiles/list.html:3
 #: templates/profiles/list.html:9
 msgid "Profiles"
 msgstr "Profile"
 
-#: templates/base.html:50 templates/organizations/dashboard.html:3
+#: templates/base.html:56 templates/organizations/dashboard.html:3
 msgid "Organization"
 msgstr ""
 
-#: templates/base.html:56
+#: templates/base.html:62
 msgid "Logout"
 msgstr "Abmelden"
 
-#: templates/base.html:94
+#: templates/base.html:100
 msgid "All rights reserved."
 msgstr "Alle Rechte vorbehalten."
 
-#: templates/base.html:98
+#: templates/base.html:104
 msgid "Imprint"
 msgstr "Impressum"
 
-#: templates/base.html:100
+#: templates/base.html:106
 msgid "Privacy"
 msgstr "Datenschutz"
 
@@ -500,6 +509,7 @@ msgstr ""
 "auf diese E-Mail."
 
 #: templates/organizations/create.html:3 templates/organizations/create.html:15
+#: templates/timetracking/home.html:65
 msgid "Create organization"
 msgstr ""
 
@@ -530,7 +540,7 @@ msgid "Holidays"
 msgstr "Arbeitstage"
 
 #: templates/organizations/dashboard.html:13
-#: templates/organizations/dashboard.html:93
+#: templates/organizations/dashboard.html:102
 #: templates/organizations/employee_create.html:3
 #: templates/organizations/employee_create.html:7
 #, fuzzy
@@ -539,12 +549,12 @@ msgid "Add employee"
 msgstr "Zeit eintragen"
 
 #: templates/organizations/dashboard.html:19
-#: templates/organizations/dashboard.html:72
+#: templates/organizations/dashboard.html:81
 msgid "Employees"
 msgstr ""
 
 #: templates/organizations/dashboard.html:23
-#: templates/organizations/dashboard.html:58
+#: templates/organizations/dashboard.html:67
 #, fuzzy
 #| msgid "Manage profiles"
 msgid "Managers"
@@ -557,44 +567,69 @@ msgid "Team Settings"
 msgstr "Team-Einstellungen"
 
 #: templates/organizations/dashboard.html:33
-msgid "Timer only mode"
-msgstr "Nur Timer-Modus"
+#, fuzzy
+#| msgid "Time Tracking"
+msgid "Time tracking mode"
+msgstr "Zeiterfassungsmodus"
 
-#: templates/organizations/dashboard.html:45
-msgid "Active – Only timer entries allowed"
-msgstr "Aktiv – Nur Timer-Einträge erlaubt"
+#: templates/organizations/dashboard.html:34
+msgid ""
+"In restricted mode, employees can only record time via the start/stop timer. "
+"Managers retain full access."
+msgstr ""
+"Im eingeschränkten Modus können Mitarbeiter nur via Start/Stopp-Timer erfassen. "
+"Manager behalten vollen Zugriff."
+
+#: templates/organizations/dashboard.html:44
+msgid "Classic – Full access"
+msgstr "Klassisch – Volle Bearbeitung"
 
 #: templates/organizations/dashboard.html:47
-msgid "Inactive – Manual entries allowed"
-msgstr "Inaktiv – Manuelle Einträge erlaubt"
+msgid "Restricted – Timer only"
+msgstr "Eingeschränkt – Nur Timer"
 
-#: templates/organizations/dashboard.html:52
+#: templates/organizations/dashboard.html:53
+msgid "Restricted – Timer only (managers can edit)"
+msgstr "Eingeschränkt – Nur Timer (Manager können bearbeiten)"
+
+#: templates/organizations/dashboard.html:55
+msgid "Classic – Full CRUD access"
+msgstr "Klassisch – uneingeschränkter Zugriff"
+
+#: templates/organizations/dashboard.html:60
 #: templates/organizations/weekly_calendar.html:4
 msgid "Weekly Calendar"
 msgstr "Wochenkalender"
 
-#: templates/organizations/dashboard.html:66
+#: templates/organizations/dashboard.html:61
+#: templates/organizations/team_calendar.html:4
+#, fuzzy
+#| msgid "Weekly Calendar"
+msgid "Team Calendar"
+msgstr "Wochenkalender"
+
+#: templates/organizations/dashboard.html:75
 #, fuzzy
 #| msgid "Manage profiles"
 msgid "Manager"
 msgstr "Profile verwalten"
 
-#: templates/organizations/dashboard.html:82
+#: templates/organizations/dashboard.html:91
 msgid "View"
 msgstr ""
 
-#: templates/organizations/dashboard.html:83
+#: templates/organizations/dashboard.html:92
 #: templates/organizations/employee_remove.html:16
 msgid "Remove"
 msgstr ""
 
-#: templates/organizations/dashboard.html:91
+#: templates/organizations/dashboard.html:100
 #, fuzzy
 #| msgid "No profile yet"
 msgid "No employees yet"
 msgstr "Noch kein Profil"
 
-#: templates/organizations/dashboard.html:92
+#: templates/organizations/dashboard.html:101
 #, fuzzy
 #| msgid "Create your first work profile to start tracking time."
 msgid "Add your first employee to start tracking their time."
@@ -607,21 +642,21 @@ msgid ""
 msgstr ""
 
 # accounts/password_reset_confirm.html
-#: templates/organizations/employee_create.html:28
+#: templates/organizations/employee_create.html:39
 #: trackable/organizations/forms.py:18
 #, fuzzy
 #| msgid "New password"
 msgid "Temporary password"
 msgstr "Neues Passwort"
 
-#: templates/organizations/employee_create.html:32
+#: templates/organizations/employee_create.html:44
 #: trackable/organizations/forms.py:22
 #, fuzzy
 #| msgid "Confirm password"
 msgid "Confirm temporary password"
 msgstr "Passwort bestätigen"
 
-#: templates/organizations/employee_create.html:35
+#: templates/organizations/employee_create.html:48
 #, fuzzy
 #| msgid "Create profile"
 msgid "Create employee"
@@ -657,7 +692,7 @@ msgid "Remove from organization"
 msgstr ""
 
 #: templates/organizations/employee_detail.html:23
-#: templates/profiles/list.html:24 templates/timetracking/home.html:34
+#: templates/profiles/list.html:24 templates/timetracking/home.html:35
 msgid "week"
 msgstr "Woche"
 
@@ -725,14 +760,15 @@ msgstr "Arbeitsstunden"
 #: templates/organizations/employee_profile_detail.html:54
 #: templates/organizations/holiday_form.html:12
 #: templates/organizations/holiday_list.html:34
-#: templates/timetracking/add_entry.html:19
+#: templates/timetracking/add_entry.html:26
 #: templates/timetracking/monthly_table.html:45
 #: trackable/organizations/forms.py:57 trackable/timetracking/forms.py:11
 msgid "Date"
 msgstr "Datum"
 
 #: templates/organizations/employee_profile_detail.html:55
-#: templates/timetracking/home.html:40
+#: templates/organizations/team_calendar.html:358
+#: templates/timetracking/home.html:41
 #: templates/timetracking/monthly_table.html:46
 #: templates/timetracking/vacation_overview.html:57
 msgid "Start"
@@ -795,7 +831,7 @@ msgstr "Beschreibung"
 
 #: templates/organizations/employee_profile_detail.html:105
 #: templates/timetracking/monthly_table.html:107
-#: templates/timetracking/vacation_overview.html:86
+#: templates/timetracking/vacation_overview.html:85
 msgid "Total"
 msgstr "Gesamt"
 
@@ -818,6 +854,7 @@ msgid ""
 msgstr ""
 
 #: templates/organizations/employee_remove.html:15
+#: templates/organizations/team_calendar.html:369
 #: templates/profiles/create.html:43 templates/profiles/create.html:45
 msgid "Cancel"
 msgstr "Abbrechen"
@@ -858,9 +895,10 @@ msgid "Delete this holiday?"
 msgstr "Diesen Eintrag löschen?"
 
 #: templates/organizations/holiday_list.html:47
+#: templates/organizations/team_calendar.html:368
 #: templates/profiles/detail.html:17
 #: templates/timetracking/monthly_table.html:68
-#: templates/timetracking/vacation_overview.html:79
+#: templates/timetracking/vacation_overview.html:78
 msgid "Delete"
 msgstr "Löschen"
 
@@ -876,33 +914,146 @@ msgid ""
 "excluded from vacation workday calculations."
 msgstr ""
 
+#: templates/organizations/team_calendar.html:264
 #: templates/organizations/weekly_calendar.html:137
 #: templates/timetracking/add_entry.html:9
 #: templates/timetracking/add_vacation.html:9
 msgid "Back"
 msgstr "Zurück"
 
+#: templates/organizations/team_calendar.html:269
 #: templates/organizations/weekly_calendar.html:142
 msgid "Week"
 msgstr "Woche"
 
+#: templates/organizations/team_calendar.html:272
 #: templates/organizations/weekly_calendar.html:145
 msgid "Today"
 msgstr "Heute"
+
+#: templates/organizations/team_calendar.html:298
+#, python-format
+msgid "Add event at %(time)s on %(day)s"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:322
+msgid "No events for this week. Click on a time slot to add one."
+msgstr ""
+
+#: templates/organizations/team_calendar.html:330
+#, fuzzy
+#| msgid "Edit time entry"
+msgid "Edit Event"
+msgstr "Zeiteintrag bearbeiten"
+
+#: templates/organizations/team_calendar.html:333
+msgid "Title"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:334
+msgid "e.g. Weekly Sync"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:336
+msgid "Notes"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:337
+#, fuzzy
+#| msgid "View details"
+msgid "Add details…"
+msgstr "Details ansehen"
+
+#: templates/organizations/team_calendar.html:339
+msgid "Color"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:341
+msgid "Blue"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:342
+msgid "Red"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:343
+msgid "Green"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:344
+msgid "Yellow"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:345
+msgid "Purple"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:346
+msgid "Gray"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:349
+msgid "Day"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:362
+#, fuzzy
+#| msgid "Description (optional)"
+msgid "Duration (min)"
+msgstr "Beschreibung (optional)"
+
+#: templates/organizations/team_calendar.html:445
+#: trackable/organizations/calendar_views.py:202
+msgid "New Event"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:472
+#: templates/organizations/team_calendar.html:500
+msgid "Error:"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:472
+#: templates/organizations/team_calendar.html:500
+msgid "Unknown error"
+msgstr ""
+
+#: templates/organizations/team_calendar.html:476
+msgid "Error saving event."
+msgstr ""
+
+#: templates/organizations/team_calendar.html:485
+#, fuzzy
+#| msgid "Delete this entry?"
+msgid "Delete this event?"
+msgstr "Diesen Eintrag löschen?"
+
+#: templates/organizations/team_calendar.html:504
+msgid "Error deleting event."
+msgstr ""
 
 #: templates/organizations/weekly_calendar.html:149
 msgid "Timer only"
 msgstr "Nur Timer"
 
-#: templates/organizations/weekly_calendar.html:202
-msgid "Entries are draggable between days (manager only)."
+#: templates/organizations/weekly_calendar.html:203
+#, fuzzy
+#| msgid "Entries are draggable between days (manager only)."
+msgid ""
+"Entries are draggable between days (manager only). Drag an entry to move it "
+"to a different day."
 msgstr "Einträge können zwischen Tagen verschoben werden (nur Manager)."
 
-#: templates/organizations/weekly_calendar.html:208
+#: templates/organizations/weekly_calendar.html:205
+msgid ""
+"View your team's time entries for this week. Managers can drag entries "
+"between days."
+msgstr ""
+
+#: templates/organizations/weekly_calendar.html:212
 msgid "No data for this week"
 msgstr "Keine Daten für diese Woche"
 
-#: templates/organizations/weekly_calendar.html:209
+#: templates/organizations/weekly_calendar.html:213
 msgid "There are no time entries in this week."
 msgstr "Es gibt keine Zeiteinträge in dieser Woche."
 
@@ -912,7 +1063,7 @@ msgid "Edit profile"
 msgstr "Profil bearbeiten"
 
 #: templates/profiles/create.html:4 templates/profiles/create.html:38
-#: templates/profiles/list.html:38
+#: templates/profiles/list.html:38 templates/timetracking/home.html:63
 msgid "Create profile"
 msgstr "Profil erstellen"
 
@@ -942,7 +1093,7 @@ msgstr "Stundenlohn (€)"
 msgid "Internal notes (optional)"
 msgstr "Interne Notizen (optional)"
 
-#: templates/profiles/create.html:38 templates/timetracking/add_entry.html:42
+#: templates/profiles/create.html:38 templates/timetracking/add_entry.html:54
 msgid "Save changes"
 msgstr "Änderungen speichern"
 
@@ -962,7 +1113,7 @@ msgstr "Stundenlohn"
 msgid "Internal notes"
 msgstr "Interne Notizen"
 
-#: templates/profiles/detail.html:49 templates/timetracking/home.html:50
+#: templates/profiles/detail.html:49 templates/timetracking/home.html:51
 msgid "Monthly overview"
 msgstr "Monatsübersicht"
 
@@ -1021,32 +1172,32 @@ msgstr "Zeiteintrag bearbeiten"
 msgid "Add time entry"
 msgstr "Zeit eintragen"
 
-#: templates/timetracking/add_entry.html:23 trackable/timetracking/forms.py:12
+#: templates/timetracking/add_entry.html:31 trackable/timetracking/forms.py:12
 msgid "Start time"
 msgstr "Startzeit"
 
-#: templates/timetracking/add_entry.html:27 trackable/timetracking/forms.py:13
+#: templates/timetracking/add_entry.html:36 trackable/timetracking/forms.py:13
 msgid "End time"
 msgstr "Endzeit"
 
-#: templates/timetracking/add_entry.html:31 trackable/timetracking/forms.py:14
+#: templates/timetracking/add_entry.html:41 trackable/timetracking/forms.py:14
 msgid "Break (hours)"
 msgstr "Pause (Stunden)"
 
-#: templates/timetracking/add_entry.html:34
+#: templates/timetracking/add_entry.html:44
 msgid "Default: 0 hours"
 msgstr "Standard: 0 Stunden"
 
-#: templates/timetracking/add_entry.html:38 trackable/timetracking/forms.py:15
+#: templates/timetracking/add_entry.html:49 trackable/timetracking/forms.py:15
 msgid "Activity / Notes"
 msgstr "Tätigkeit / Notizen"
 
-#: templates/timetracking/add_entry.html:38
+#: templates/timetracking/add_entry.html:49
 #: templates/timetracking/add_vacation.html:32
 msgid "optional"
 msgstr "optional"
 
-#: templates/timetracking/add_entry.html:42
+#: templates/timetracking/add_entry.html:54
 msgid "Save time entry"
 msgstr "Zeit speichern"
 
@@ -1054,7 +1205,7 @@ msgstr "Zeit speichern"
 #: templates/timetracking/monthly_table.html:118
 #: templates/timetracking/monthly_table.html:121
 #: templates/timetracking/vacation_overview.html:13
-#: templates/timetracking/vacation_overview.html:98
+#: templates/timetracking/vacation_overview.html:97
 msgid "Add vacation"
 msgstr "Urlaub hinzufügen"
 
@@ -1108,20 +1259,64 @@ msgid "Manage profiles"
 msgstr "Profile verwalten"
 
 #: templates/timetracking/home.html:41
+#, fuzzy
+#| msgid "Start time"
+msgid "Start timer for"
+msgstr "Startzeit"
+
+#: templates/timetracking/home.html:42
+#, fuzzy
+#| msgid "Save time entry"
+msgid "Pause timer for"
+msgstr "Zeit speichern"
+
+#: templates/timetracking/home.html:42
 msgid "Pause"
 msgstr "Pause"
 
-#: templates/timetracking/home.html:42
+#: templates/timetracking/home.html:43
+#, fuzzy
+#| msgid "Register for free"
+msgid "Resume timer for"
+msgstr "Kostenfrei registrieren"
+
+#: templates/timetracking/home.html:43
 msgid "Resume"
 msgstr "Fortsetzen"
 
-#: templates/timetracking/home.html:43
+#: templates/timetracking/home.html:44
+msgid "Stop timer for"
+msgstr ""
+
+#: templates/timetracking/home.html:44
 msgid "Stop"
 msgstr "Stopp"
 
-#: templates/timetracking/home.html:48
+#: templates/timetracking/home.html:49
 msgid "Add time"
 msgstr "Zeit eintragen"
+
+#: templates/timetracking/home.html:60
+msgid "Welcome to trackable!"
+msgstr ""
+
+#: templates/timetracking/home.html:61
+msgid ""
+"Start by creating your first profile. A profile represents a work project, "
+"client, or position you want to track time for."
+msgstr ""
+
+#: templates/timetracking/home.html:71
+msgid "Create a profile for your project or role"
+msgstr ""
+
+#: templates/timetracking/home.html:75
+msgid "Start the timer when you begin working"
+msgstr ""
+
+#: templates/timetracking/home.html:79
+msgid "Stop the timer when you're done — time is saved automatically"
+msgstr ""
 
 # timetracking/monthly_table.html
 #: templates/timetracking/monthly_table.html:9
@@ -1161,7 +1356,7 @@ msgstr "Tage gesamt"
 msgid "Delete this vacation entry?"
 msgstr "Diesen Urlaubseintrag löschen?"
 
-#: templates/timetracking/vacation_overview.html:96
+#: templates/timetracking/vacation_overview.html:95
 msgid "No vacation entries for"
 msgstr "Keine Urlaubseinträge für"
 
@@ -1213,6 +1408,38 @@ msgstr ""
 msgid "Failed to send email: %(error)s"
 msgstr ""
 
+#: trackable/organizations/calendar_views.py:210
+msgid "day_id, start_time, and week_start are required."
+msgstr ""
+
+#: trackable/organizations/calendar_views.py:217
+#, fuzzy
+#| msgid "Invalid date format."
+msgid "Invalid date/time format."
+msgstr "Ungültiges Datumsformat."
+
+#: trackable/organizations/calendar_views.py:263
+#, fuzzy
+#| msgid "Invalid date format."
+msgid "Invalid time format."
+msgstr "Ungültiges Datumsformat."
+
+#: trackable/organizations/calendar_views.py:270
+#: trackable/organizations/calendar_views.py:311
+#: trackable/organizations/views.py:349
+msgid "Invalid date format."
+msgstr "Ungültiges Datumsformat."
+
+#: trackable/organizations/calendar_views.py:290
+msgid "You can only delete your own events."
+msgstr ""
+
+#: trackable/organizations/calendar_views.py:306
+#, fuzzy
+#| msgid "new_date is required."
+msgid "week_start is required."
+msgstr "new_date ist erforderlich."
+
 #: trackable/organizations/decorators.py:13
 msgid "You do not have permission to access this page."
 msgstr ""
@@ -1221,59 +1448,55 @@ msgstr ""
 msgid "Passwords do not match."
 msgstr ""
 
-#: trackable/organizations/views.py:55
+#: trackable/organizations/views.py:56
 msgid "You are already part of an organization."
 msgstr ""
 
-#: trackable/organizations/views.py:71
+#: trackable/organizations/views.py:72
 #, fuzzy, python-format
 #| msgid "Profile \"%(title)s\" was created successfully!"
 msgid "Organization \"%(name)s\" created successfully!"
 msgstr "Profil \"%(title)s\" wurde erfolgreich erstellt!"
 
-#: trackable/organizations/views.py:88
-msgid "activated"
-msgstr "aktiviert"
+#: trackable/organizations/views.py:89
+msgid "restricted"
+msgstr ""
 
-#: trackable/organizations/views.py:88
-msgid "deactivated"
-msgstr "deaktiviert"
+#: trackable/organizations/views.py:92
+msgid "classic"
+msgstr ""
 
-#: trackable/organizations/views.py:91
+#: trackable/organizations/views.py:96
 #, python-format
-msgid "Timer-only mode %(status)s."
-msgstr "Nur Timer-Modus %(status)s."
+msgid "Time tracking mode set to %(mode)s."
+msgstr "Zeiterfassungsmodus auf %(mode)s gesetzt."
 
-#: trackable/organizations/views.py:113
+#: trackable/organizations/views.py:118
 #, fuzzy, python-format
 #| msgid "Profile \"%(title)s\" was created successfully!"
 msgid "Employee \"%(name)s\" created successfully!"
 msgstr "Profil \"%(title)s\" wurde erfolgreich erstellt!"
 
-#: trackable/organizations/views.py:335
+#: trackable/organizations/views.py:340
 msgid "Entry does not belong to your organization."
 msgstr "Eintrag gehört nicht zu Ihrer Organisation."
 
-#: trackable/organizations/views.py:339
+#: trackable/organizations/views.py:344
 msgid "new_date is required."
 msgstr "new_date ist erforderlich."
 
-#: trackable/organizations/views.py:344
-msgid "Invalid date format."
-msgstr "Ungültiges Datumsformat."
-
-#: trackable/organizations/views.py:367
+#: trackable/organizations/views.py:372
 #, python-format
 msgid "%(name)s has been removed from the organization."
 msgstr ""
 
-#: trackable/organizations/views.py:416
+#: trackable/organizations/views.py:421
 #, fuzzy, python-format
 #| msgid "Profile \"%(title)s\" was created successfully!"
 msgid "Holiday \"%(name)s\" added successfully!"
 msgstr "Profil \"%(title)s\" wurde erfolgreich erstellt!"
 
-#: trackable/organizations/views.py:438
+#: trackable/organizations/views.py:443
 #, fuzzy
 #| msgid "Profile was deleted."
 msgid "Holiday deleted."
@@ -1312,38 +1535,57 @@ msgstr "Beschreibung (optional)"
 msgid "e.g. Summer vacation"
 msgstr "z.B. Sommerurlaub"
 
-#: trackable/timetracking/views.py:60
+#: trackable/timetracking/views.py:57
 msgid "Manual time entry is disabled. Please use the timer."
 msgstr "Manuelle Zeiteinträge sind deaktiviert. Bitte nutzen Sie den Timer."
 
-#: trackable/timetracking/views.py:71
+#: trackable/timetracking/views.py:68
 #, python-format
 msgid "Time entry for %(date)s was saved successfully!"
 msgstr "Zeiteintrag für %(date)s wurde erfolgreich gespeichert!"
 
-#: trackable/timetracking/views.py:90
+#: trackable/timetracking/views.py:86
 msgid "Editing time entries is disabled in timer-only mode."
 msgstr "Bearbeiten von Zeiteinträgen ist im Nur Timer-Modus deaktiviert."
 
-#: trackable/timetracking/views.py:97
+#: trackable/timetracking/views.py:93
 msgid "Time entry was updated successfully!"
 msgstr "Zeiteintrag wurde erfolgreich aktualisiert!"
 
-#: trackable/timetracking/views.py:120
+#: trackable/timetracking/views.py:116
 msgid "Time entry was deleted."
 msgstr "Zeiteintrag wurde gelöscht."
 
-#: trackable/timetracking/views.py:174
+#: trackable/timetracking/views.py:169
 msgid "End date must be after start date."
 msgstr "Das Enddatum muss nach dem Startdatum liegen."
 
-#: trackable/timetracking/views.py:177
+#: trackable/timetracking/views.py:172
 msgid "Vacation entry was saved successfully!"
 msgstr "Urlaubseintrag wurde erfolgreich gespeichert!"
 
-#: trackable/timetracking/views.py:192
+#: trackable/timetracking/views.py:187
 msgid "Vacation entry was deleted."
 msgstr "Urlaubseintrag wurde gelöscht."
+
+#~ msgid "Timer only mode"
+#~ msgstr "Nur Timer-Modus"
+
+#~ msgid "Active – Only timer entries allowed"
+#~ msgstr "Aktiv – Nur Timer-Einträge erlaubt"
+
+#~ msgid "Inactive – Manual entries allowed"
+#~ msgstr "Inaktiv – Manuelle Einträge erlaubt"
+
+#~ msgid "activated"
+#~ msgstr "aktiviert"
+
+#~ msgid "deactivated"
+#~ msgstr "deaktiviert"
+
+#, python-format
+#~ msgid "Timer-only mode %(status)s."
+#~ msgstr "Nur Timer-Modus %(status)s."
 
 #~ msgid "No account yet?"
 #~ msgstr "Noch kein Konto?"
@@ -1363,9 +1605,6 @@ msgstr "Urlaubseintrag wurde gelöscht."
 
 #~ msgid "Get started"
 #~ msgstr "Jetzt loslegen"
-
-#~ msgid "Register for free"
-#~ msgstr "Kostenfrei registrieren"
 
 #~ msgid "Already registered?"
 #~ msgstr "Bereits registriert?"
