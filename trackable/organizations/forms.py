@@ -5,6 +5,39 @@ from trackable.accounts.models import User
 from trackable.core.models import Holiday
 
 
+class OrganizationBrandingForm(forms.ModelForm):
+    class Meta:
+        model = Organization
+        fields = [
+            "logo", "favicon", "apple_touch_icon",
+            "primary_color", "accent_color", "custom_css",
+        ]
+        widgets = {
+            "primary_color": forms.TextInput(attrs={
+                "type": "color",
+                "style": "width:60px; height:44px; padding:4px; cursor:pointer;",
+            }),
+            "accent_color": forms.TextInput(attrs={
+                "type": "color",
+                "style": "width:60px; height:44px; padding:4px; cursor:pointer;",
+            }),
+            "custom_css": forms.Textarea(attrs={
+                "rows": 10,
+                "class": "form-control css-editor",
+                "placeholder": _("/* Custom CSS rules */"),
+                "style": "font-family:monospace; font-size:.88rem;",
+            }),
+        }
+        help_texts = {
+            "logo": _("Empfohlen: 180×40 px, PNG oder SVG. Ersetzt das Logo in der Navigationsleiste."),
+            "favicon": _("Empfohlen: 32×32 px, ICO oder PNG."),
+            "apple_touch_icon": _("Empfohlen: 180×180 px, PNG. iOS-Homescreen-Symbol."),
+            "primary_color": _("Hex-Farbe (#RRGGBB). Überschreibt primäre UI-Akzente (Buttons, Badges)."),
+            "accent_color": _("Hex-Farbe (#RRGGBB). Überschreibt sekundäre Akzente (Links, Hover)."),
+            "custom_css": _("Beliebige CSS-Regeln (z. B. .btn-primary { background: #xyz; }). Wird nach allen Standard-Styles geladen."),
+        }
+
+
 class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization

@@ -547,3 +547,85 @@ class SetTargetHoursTest(TestCase):
         self.assertEqual(target, 126.0)  # 30/5*21 = 126
 
 
+class OrganizationBrandingTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.manager = User.objects.create_user(
+            username="brandmgr", password="pass123",
+        )
+        self.org = Organization.objects.create(
+            name="BrandCorp", slug="brandcorp",
+            created_by=self.manager,
+        )
+        OrganizationMembership.objects.create(
+            user=self.manager, organization=self.org, role="manager",
+        )
+        self.client.login(username="brandmgr", password="pass123")
+
+    def test_branding_view_requires_login(self):
+        self.client.logout()
+        resp = self.client.get(reverse("org_branding"))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_branding_view_requires_manager(self):
+        emp = User.objects.create_user(username="brandemp", password="pass123")
+        OrganizationMembership.objects.create(
+            user=emp, organization=self.org, role="employee",
+        )
+        self.client.login(username="brandemp", password="pass123")
+        resp = self.client.get(reverse("org_branding"))
+        # org_manager_required decorator redirects to "home"
+        self.assertEqual(resp.status_code, 302)
+
+    def test_branding_view_renders_200(self):
+        resp = self.client.get(reverse("org_branding"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Company Branding")
+
+    def test_branding_saves_colors(self):
+        resp = self.client.post(reverse("org_branding"), {
+            "primary_color": "#ff0000",
+            "accent_color": "#00ff00",
+            "custom_css": ".btn { background: red !important; }",
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.org.refresh_from_db()
+        self.assertEqual(self.org.primary_color, "#ff0000")
+        self.assertEqual(self.org.accent_color, "#00ff00")
+        self.assertEqual(self.org.custom_css, ".btn { background: red !important; }")
+
+    def test_branding_defaults_empty(self):
+        self.org.refresh_from_db()
+        self.assertEqual(self.org.primary_color, "")
+        self.assertEqual(self.org.accent_color, "")
+        self.assertEqual(self.org.custom_css, "")
+
+    def test_context_processor_no_org(self):
+        user = User.objects.create_user(username="noorg", password="pass123")
+        Profile.objects.create(
+            user=user, title="Test", position="X",
+            weekly_hours=40, hourly_rate=0,
+        )
+        self.client.login(username="noorg", password="pass123")
+        resp = self.client.get(reverse("home"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(resp.context.get("has_branding"))
+
+    def test_branding_logo_url_in_context(self):
+        """Test that setting a logo makes org_logo_url available."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        import io
+        from PIL import Image
+
+        img = io.BytesIO()
+        Image.new("RGBA", (180, 40), (136, 57, 239, 255)).save(img, "PNG")
+        img.seek(0)
+        self.org.logo = SimpleUploadedFile(
+            "test_logo.png", img.getvalue(), content_type="image/png"
+        )
+        self.org.save()
+
+        resp = self.client.get(reverse("org_dashboard"))
+        self.assertContains(resp, self.org.logo.url)
+
+

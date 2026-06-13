@@ -49,4 +49,7 @@ urlpatterns = [
         calendar_views.calendar_delete_event,
         name="calendar_delete_event",
     ),
+
+    # Branding
+    path("branding/", views.org_branding, name="org_branding"),
 ]

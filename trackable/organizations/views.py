@@ -9,6 +9,7 @@ from trackable.organizations.forms import (
     OrganizationForm,
     EmployeeCreateForm,
     HolidayForm,
+    OrganizationBrandingForm,
 )
 from trackable.organizations.decorators import org_manager_required
 from trackable.organizations.helpers import can_edit_time_entries
@@ -494,3 +495,21 @@ def holiday_delete(request, pk):
         holiday.delete()
         messages.success(request, _("Holiday deleted."))
     return redirect("org_holidays")
+
+
+@login_required
+@org_manager_required
+def org_branding(request):
+    org = request.user.organization_membership.organization
+    if request.method == "POST":
+        form = OrganizationBrandingForm(request.POST, request.FILES, instance=org)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Branding saved."))
+            return redirect("org_branding")
+    else:
+        form = OrganizationBrandingForm(instance=org)
+    return render(request, "organizations/branding.html", {
+        "form": form,
+        "organization": org,
+    })

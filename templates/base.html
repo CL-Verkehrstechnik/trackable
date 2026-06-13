@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#292c3c">
+    <meta name="theme-color" content="{% if org_primary_color %}{{ org_primary_color }}{% else %}#292c3c{% endif %}">
     <meta name="description" content="{% block meta_description %}{% trans "trackable. – Your personal time tracker." %}{% endblock %}">
     <title>{% block title %}trackable.{% endblock %} – {% trans "Time Tracking" %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,11 +13,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="manifest" href="{% static 'manifest.json' %}">
+    {% if org_favicon_url %}
+    <link rel="icon" type="image/x-icon" href="{{ org_favicon_url }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ org_favicon_url }}">
+    {% else %}
     <link rel="icon" type="image/x-icon"  href="{% static 'img/favicon.ico' %}">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
-    <link rel="apple-touch-icon"          href="{% static 'img/apple-touch-icon.png' %}">
+    {% endif %}
+    <link rel="apple-touch-icon" href="{% if org_apple_touch_icon_url %}{{ org_apple_touch_icon_url }}{% else %}{% static 'img/apple-touch-icon.png' %}{% endif %}">
     {% block extra_css %}{% endblock %}
+    {% if has_branding %}
+    <style>
+        :root {
+            {% if org_primary_color %}
+            --brand-primary: {{ org_primary_color }};
+            --ctp-mauve: {{ org_primary_color }};
+            --ctp-pink: {{ org_primary_color }};
+            --glow-mauve: 0 0 20px {{ org_primary_color }}33;
+            {% endif %}
+            {% if org_accent_color %}
+            --brand-link: {{ org_accent_color }};
+            --ctp-blue: {{ org_accent_color }};
+            --ctp-lavender: {{ org_accent_color }};
+            --ctp-sapphire: {{ org_accent_color }};
+            --glow-blue: 0 0 20px {{ org_accent_color }}33;
+            {% endif %}
+        }
+        [data-theme="light"]:root {
+            {% if org_primary_color %}
+            --ctp-mauve: {{ org_primary_color }};
+            --ctp-pink: {{ org_primary_color }};
+            --glow-mauve: 0 0 20px {{ org_primary_color }}22;
+            {% endif %}
+            {% if org_accent_color %}
+            --ctp-blue: {{ org_accent_color }};
+            --ctp-lavender: {{ org_accent_color }};
+            --ctp-sapphire: {{ org_accent_color }};
+            --glow-blue: 0 0 20px {{ org_accent_color }}22;
+            {% endif %}
+        }
+    </style>
+    {% endif %}
+    {% if org_custom_css %}
+    <style id="org-custom-css">{{ org_custom_css|safe }}</style>
+    {% endif %}
     {# Inline: apply saved theme BEFORE first paint to avoid flash #}
     <script>(function(){var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');if(t==='light')document.documentElement.setAttribute('data-theme','light');})();</script>
 </head>
@@ -30,8 +70,12 @@
 <header class="site-header">
     <div class="container">
         <a href="/" class="logo">
+            {% if org_logo_url %}
+            <img src="{{ org_logo_url }}" alt="{{ organization.name }}" class="logo-img" style="max-height:40px; width:auto;">
+            {% else %}
             <img src="{% static 'img/trackable-logo.png' %}" alt="trackable." class="logo-img">
             <span class="logo-name">trackable.</span>
+            {% endif %}
         </a>
 
         <div class="header-right">

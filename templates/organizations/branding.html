@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Branding" %} – {{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="content" style="max-width:720px; margin:0 auto;">
+    <h1>🎨 {% trans "Company Branding" %}</h1>
+    <p style="color:var(--ctp-subtext0); margin-bottom:28px;">
+        {% trans "Customize the look and feel of trackable for your organization." %}
+    </p>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+            <small class="text-muted" style="display:block; margin-top:4px;">{{ field.help_text }}</small>
+            {% endif %}
+            {% for error in field.errors %}
+            <span class="field-error">{{ error }}</span>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <div style="display:flex; gap:12px; margin-top:24px;">
+            <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+            <a href="/org/" class="btn btn-secondary">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+
+    <hr class="divider">
+    <h3>🔍 {% trans "Preview" %}</h3>
+    <p style="color:var(--ctp-subtext0); margin-bottom:16px;">
+        {% trans "To see your branding changes, save and reload any page." %}
+    </p>
+</div>
+{% endblock %}

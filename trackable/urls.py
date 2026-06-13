@@ -2,6 +2,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
+from django.views.static import serve as static_serve
 from trackable.core.admin_site import custom_admin_site
 from trackable.core import api_views
 
@@ -25,6 +26,13 @@ urlpatterns = [
     ),
 ]
 
+# Media-Dateien (Uploads wie Logos, Favicons)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+elif getattr(settings, "SERVE_MEDIA", False):
+    # Production: Django servt Media-Dateien direkt (einfachste Lösung)
+    # In größeren Deployments sollte Nginx/Caddy das übernehmen.
+    urlpatterns += [
+        path("media/<path:path>", static_serve, {"document_root": settings.MEDIA_ROOT}),
+    ]

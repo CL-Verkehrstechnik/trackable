@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 from datetime import time as time_obj
 
 
@@ -42,6 +43,43 @@ class Organization(models.Model):
     )
     cal_start_time = models.TimeField(default=time_obj(8, 0), verbose_name="Calendar start time")
     cal_end_time = models.TimeField(default=time_obj(20, 0), verbose_name="Calendar end time")
+
+    # ── Branding / White-Label ──
+    logo = models.ImageField(
+        upload_to="org_logos/",
+        blank=True, null=True,
+        verbose_name=_("Logo (Navbar)"),
+        help_text=_("Empfohlen: 180×40 px, PNG oder SVG mit transparentem Hintergrund."),
+    )
+    favicon = models.ImageField(
+        upload_to="org_favicons/",
+        blank=True, null=True,
+        verbose_name=_("Favicon"),
+        help_text=_("Empfohlen: 32×32 px, ICO oder PNG."),
+    )
+    apple_touch_icon = models.ImageField(
+        upload_to="org_favicons/",
+        blank=True, null=True,
+        verbose_name=_("Apple Touch Icon"),
+        help_text=_("Empfohlen: 180×180 px, PNG. Wird auf dem iOS-Homescreen verwendet."),
+    )
+    primary_color = models.CharField(
+        max_length=7,
+        default="", blank=True,
+        verbose_name=_("Primärfarbe"),
+        help_text=_("Hex-Farbe (z. B. #ca9ee6). Überschreibt primäre UI-Akzente (Buttons, Badges)."),
+    )
+    accent_color = models.CharField(
+        max_length=7,
+        default="", blank=True,
+        verbose_name=_("Akzentfarbe"),
+        help_text=_("Hex-Farbe (z. B. #8caaee). Überschreibt sekundäre Akzente (Links, Hover)."),
+    )
+    custom_css = models.TextField(
+        blank=True, default="",
+        verbose_name=_("Eigenes CSS"),
+        help_text=_("Beliebige CSS-Regeln, nach den Standard-Styles geladen."),
+    )
 
     class Meta:
         ordering = ["name"]
