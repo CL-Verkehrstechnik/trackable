@@ -9,10 +9,13 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     UV_COMPILE_BYTECODE=1
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    gettext \
-    cron \
+# Use timeouts + retries to avoid apt-get hanging (>5 min) and getting
+# SIGKILL (exit code 137) from the Docker builder on slow connections.
+RUN apt-get update -o Acquire::http::Timeout=30 -o Acquire::Retries=3 -o Acquire::http::Pipeline-Depth=0 \
+    && apt-get install -y --no-install-recommends --no-install-suggests \
+        gcc \
+        gettext \
+        cron \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml uv.lock ./
