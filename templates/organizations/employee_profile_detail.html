@@ -24,7 +24,7 @@
         <a href="#" onclick="document.getElementById('target-hours-form').style.display='block'; this.style.display='none'; return false;"
            style="margin-left:10px; font-size:.85rem; color:var(--ctp-blue); cursor:pointer;">✏ {% trans "Edit" %}</a>
     </p>
-    <form id="target-hours-form" method="post" action="/org/employees/{{ employee.id }}/profile/{{ profile.id }}/set-target-hours/"
+    <form id="target-hours-form" method="post" action="/org/employees/{{ employee.id }}/profiles/{{ profile.id }}/set-target-hours/"
           style="display:none; margin-top:10px;">
         {% csrf_token %}
         <label style="color:var(--ctp-subtext0); font-size:.85rem;">{% trans "Weekly target hours" %}:</label>
