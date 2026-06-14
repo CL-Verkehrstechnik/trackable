@@ -138,6 +138,10 @@ def register(request):
     if request.user.is_authenticated:
         return redirect("home")
 
+    if settings.DISABLE_REGISTRATION:
+        messages.error(request, _("Registration is currently disabled."))
+        return redirect("login")
+
     if request.method == "POST":
         form = UserRegistrationForm(request.POST)
         if form.is_valid():

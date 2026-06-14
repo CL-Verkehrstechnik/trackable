@@ -128,3 +128,4 @@ LOGOUT_REDIRECT_URL = "/"
 BACKUP_SCHEDULE = config("BACKUP_SCHEDULE", default="weekly")
 BACKUP_FILENAME = config("BACKUP_FILENAME", default="db_backup.sqlite3")
 MONTHLY_EMAIL_TIME = config("MONTHLY_EMAIL_TIME", default="23:59")
+DISABLE_REGISTRATION = config("DISABLE_REGISTRATION", default=False, cast=bool)
