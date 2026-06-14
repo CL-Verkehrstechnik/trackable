@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Admin exists – Setup" %}{% endblock %}
+{% block content %}
+<div class="content" style="max-width: 480px; margin: 60px auto; text-align:center;">
+    <h2 style="color:var(--ctp-mauve); margin-bottom:16px;">{% trans "Admin account already exists" %}</h2>
+    <p style="color:var(--ctp-subtext0); margin-bottom:30px; font-size:1.1em;">
+        {% trans "An admin account was found in the database. You don't need to create a new one. Continue to configure your instance." %}
+    </p>
+    <a href="{% url 'setup_step2' %}" class="btn btn-primary btn-lg">
+        {% trans "Continue setup" %} &rarr;
+    </a>
+</div>
+{% endblock %}

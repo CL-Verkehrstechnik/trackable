@@ -2,6 +2,32 @@ from django.shortcuts import redirect
 from django.urls import reverse
 
 
+class AllowedHostsMiddleware:
+    """Injects SiteConfiguration.allowed_hosts into settings.ALLOWED_HOSTS at runtime.
+    
+    Must be placed before CommonMiddleware in the MIDDLEWARE list so that
+    Host header validation includes hosts configured in the database.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+    
+    def __call__(self, request):
+        try:
+            from trackable.core.models import SiteConfiguration
+            config = SiteConfiguration.get()
+            if config.allowed_hosts:
+                from django.conf import settings
+                extra_hosts = [
+                    h.strip() for h in config.allowed_hosts.split(",") 
+                    if h.strip() and h.strip() not in settings.ALLOWED_HOSTS
+                ]
+                if extra_hosts:
+                    settings.ALLOWED_HOSTS.extend(extra_hosts)
+        except Exception:
+            pass  # Fail silently if DB not ready
+        return self.get_response(request)
+
+
 class SetupRedirectMiddleware:
     """Redirect unauthenticated users to the setup wizard if setup is not complete.
     

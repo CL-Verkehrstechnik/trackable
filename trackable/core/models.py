@@ -35,6 +35,11 @@ class SiteConfiguration(models.Model):
     email_host_user = models.CharField(max_length=200, blank=True, default="", verbose_name=_("Email host user"))
     email_host_password = models.CharField(max_length=200, blank=True, default="", verbose_name=_("Email host password"))
     default_from_email = models.CharField(max_length=200, blank=True, default="", verbose_name=_("Default from email"))
+    allowed_hosts = models.CharField(
+        max_length=500, blank=True, default="",
+        verbose_name=_("Allowed hosts"),
+        help_text=_("Comma-separated list of allowed hostnames. Leave empty to use the ALLOWED_HOSTS env var."),
+    )
 
     class Meta:
         verbose_name = _("Site configuration")

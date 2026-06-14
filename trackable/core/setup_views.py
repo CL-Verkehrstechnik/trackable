@@ -14,9 +14,9 @@ def setup_step1(request):
     if config.setup_completed:
         return redirect("login")
     
-    # If superuser already exists (e.g., created via CLI), skip to step 2
+    # If superuser already exists (e.g., created via CLI), show info page
     if User.objects.filter(is_superuser=True).exists():
-        return redirect("setup_step2")
+        return render(request, "core/setup/admin_exists.html")
     
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
@@ -97,7 +97,7 @@ def setup_step2(request):
         config.email_host_user = request.POST.get("email_host_user", "").strip()
         config.email_host_password = request.POST.get("email_host_password", "").strip()
         config.default_from_email = request.POST.get("default_from_email", "").strip()
-        
+        config.allowed_hosts = request.POST.get("allowed_hosts", "").strip()
         config.setup_completed = True
         config.save()
         

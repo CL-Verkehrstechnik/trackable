@@ -60,6 +60,17 @@
                    style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text);">
         </div>
 
+        <h3 style="color:var(--ctp-text); margin-bottom:16px; margin-top:32px;">{% trans "Advanced" %}</h3>
+        <div class="form-group">
+            <label for="id_allowed_hosts">{% trans "Allowed hosts" %}</label>
+            <input type="text" name="allowed_hosts" id="id_allowed_hosts" value="{{ config.allowed_hosts }}"
+                   style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text);"
+                   placeholder="{% trans 'e.g. example.com, app.example.com' %}">
+            <small style="color:var(--ctp-overlay2); display:block; margin-top:4px;">
+                {% trans "Comma-separated. Leave empty to use the ALLOWED_HOSTS env var." %}
+            </small>
+        </div>
+
         <button type="submit" class="btn btn-primary btn-full btn-form-submit" style="margin-top:16px;">
             {% trans "Complete setup" %}
         </button>
