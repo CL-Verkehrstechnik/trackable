@@ -34,6 +34,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "trackable.core.middleware.SetupRedirectMiddleware",
 ]
 
 ROOT_URLCONF = "trackable.urls"
