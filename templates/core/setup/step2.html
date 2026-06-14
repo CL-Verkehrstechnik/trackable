@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Setup – Configuration" %}{% endblock %}
+{% block content %}
+<div class="content" style="max-width: 560px; margin: 40px auto;">
+    <h2 style="text-align:center; color:var(--ctp-mauve); margin-bottom:8px;">{% trans "Configure your instance" %}</h2>
+    <p style="text-align:center; color:var(--ctp-subtext0); margin-bottom:30px;">
+        {% trans "These settings can be changed later in the Management panel." %}
+    </p>
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <h3 style="color:var(--ctp-text); margin-bottom:16px;">{% trans "Registration" %}</h3>
+        <div class="form-group" style="margin-bottom:24px;">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <input type="checkbox" name="registration_enabled" checked
+                       style="width:20px; height:20px; accent-color:var(--ctp-mauve);">
+                <span>{% trans "Allow public registration" %}</span>
+            </label>
+            <small style="color:var(--ctp-overlay2); display:block; margin-top:4px; margin-left:30px;">
+                {% trans "If disabled, only admins can create accounts." %}
+            </small>
+        </div>
+
+        <h3 style="color:var(--ctp-text); margin-bottom:16px;">{% trans "Email configuration (optional)" %}</h3>
+        <p style="color:var(--ctp-subtext0); font-size:.9em; margin-bottom:16px;">
+            {% trans "Leave empty to use environment variable defaults (EMAIL_HOST, EMAIL_PORT, etc.)." %}
+        </p>
+
+        <div class="form-group">
+            <label for="id_email_host">{% trans "SMTP host" %}</label>
+            <input type="text" name="email_host" id="id_email_host" value="{{ config.email_host }}"
+                   style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text);">
+        </div>
+        <div class="form-group">
+            <label for="id_email_port">{% trans "SMTP port" %}</label>
+            <input type="number" name="email_port" id="id_email_port" value="{{ config.email_port }}"
+                   style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text);">
+        </div>
+        <div class="form-group">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <input type="checkbox" name="email_use_tls" {% if config.email_use_tls %}checked{% endif %}
+                       style="width:20px; height:20px; accent-color:var(--ctp-mauve);">
+                <span>{% trans "Use TLS" %}</span>
+            </label>
+        </div>
+        <div class="form-group">
+            <label for="id_email_host_user">{% trans "SMTP username" %}</label>
+            <input type="text" name="email_host_user" id="id_email_host_user" value="{{ config.email_host_user }}"
+                   style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text);">
+        </div>
+        <div class="form-group">
+            <label for="id_email_host_password">{% trans "SMTP password" %}</label>
+            <input type="password" name="email_host_password" id="id_email_host_password" value="{{ config.email_host_password }}"
+                   style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text);">
+        </div>
+        <div class="form-group">
+            <label for="id_default_from_email">{% trans "Default from email" %}</label>
+            <input type="email" name="default_from_email" id="id_default_from_email" value="{{ config.default_from_email }}"
+                   style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text);">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full btn-form-submit" style="margin-top:16px;">
+            {% trans "Complete setup" %}
+        </button>
+    </form>
+</div>
+{% endblock %}

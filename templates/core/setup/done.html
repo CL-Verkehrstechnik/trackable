@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Setup Complete" %}{% endblock %}
+{% block content %}
+<div class="content" style="max-width: 480px; margin: 60px auto; text-align:center;">
+    <h2 style="color:var(--ctp-mauve); margin-bottom:16px;">{% trans "Setup complete!" %}</h2>
+    <p style="color:var(--ctp-subtext0); margin-bottom:30px; font-size:1.1em;">
+        {% trans "Your trackable instance is ready. You are logged in as the admin." %}
+    </p>
+    <a href="{% url "home" %}" class="btn btn-primary btn-lg">
+        {% trans "Go to Dashboard" %} &rarr;
+    </a>
+</div>
+{% endblock %}
