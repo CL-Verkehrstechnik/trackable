@@ -32,12 +32,34 @@ def profile_create(request):
 def profile_detail(request, pk):
     profile = get_object_or_404(Profile, pk=pk, user=request.user)
 
-    from datetime import datetime
+    from datetime import datetime, timedelta
 
     current_date = timezone.now().date()
 
-    # Collect all (year, month) tuples that actually have entries,
-    # plus always include the current month.
+    # ── Weekly calendar ──
+    # Calculate current ISO week (Monday–Sunday)
+    iso = current_date.isocalendar()
+    monday = datetime.fromisocalendar(iso[0], iso[1], 1).date()
+    week_days = []
+    for i in range(7):
+        day = monday + timedelta(days=i)
+        day_entries = profile.time_entries.filter(date=day)
+        total_hours = sum(
+            (float(e.hours_worked) for e in day_entries)
+        )
+        week_days.append({
+            "date": day,
+            "day_name": day.strftime("%a"),
+            "day_number": day.day,
+            "month_name": day.strftime("%b"),
+            "is_today": day == current_date,
+            "is_past": day < current_date,
+            "total_hours": total_hours,
+            "entry_count": day_entries.count(),
+        })
+    week_total = sum(d["total_hours"] for d in week_days)
+
+    # ── Monthly overview ──
     entry_months = set(
         profile.time_entries.values_list("date__year", "date__month").distinct()
     )
@@ -61,7 +83,13 @@ def profile_detail(request, pk):
             "earnings": profile.get_monthly_earnings(year, month),
         })
 
-    return render(request, "profiles/detail.html", {"profile": profile, "months": months})
+    return render(request, "profiles/detail.html", {
+        "profile": profile,
+        "months": months,
+        "week_days": week_days,
+        "week_total": week_total,
+        "week_monday": monday,
+    })
 
 
 @login_required

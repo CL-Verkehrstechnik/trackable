@@ -45,6 +45,49 @@
         {% endif %}
     </div>
     
+    {% comment %}────────── Weekly Calendar ──────────{% endcomment %}
+    <h2 style="margin: 32px 0 16px; color: var(--ctp-mauve);">
+        {% trans "This week" %}
+        <span style="font-size:.7em; color:var(--ctp-subtext0); font-weight:400;">
+            {{ week_monday|date:"d.m." }} – {{ week_days.6.date|date:"d.m.Y" }}
+        </span>
+    </h2>
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 32px;">
+        {% for day in week_days %}
+        <div class="card" style="
+            padding: 12px 8px;
+            text-align: center;
+            {% if day.is_today %}border-color: var(--ctp-mauve); box-shadow: 0 0 0 1px var(--ctp-mauve);{% endif %}
+            {% if day.is_past and day.total_hours == 0 and not day.is_today %}opacity: 0.5;{% endif %}
+        ">
+            <p style="font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ctp-subtext0); margin-bottom: 4px;">
+                {{ day.day_name }}
+            </p>
+            <p style="font-size: 1.1rem; font-weight: 700; color: var(--ctp-text); margin-bottom: 8px;">
+                {{ day.day_number }} <span style="font-weight:400; font-size:.75rem; color:var(--ctp-overlay2);">{{ day.month_name }}</span>
+            </p>
+            <p style="
+                font-size: 1.3rem; font-weight: bold;
+                color: {% if day.total_hours > 0 %}var(--ctp-green){% else %}var(--ctp-overlay2){% endif %};
+            ">
+                {{ day.total_hours|floatformat:1 }}h
+            </p>
+            {% if day.entry_count > 0 %}
+            <p style="font-size: .68rem; color: var(--ctp-subtext0); margin-top: 4px;">
+                {{ day.entry_count }} {% trans "entries" %}
+            </p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    <div style="text-align: right; margin-bottom: 24px; font-size: .9rem;">
+        <strong>{% trans "Week total" %}:</strong>
+        <span style="color:var(--ctp-mauve); font-weight:bold;">{{ week_total|floatformat:1 }}h</span>
+        {% if profile.weekly_hours %}
+        <span style="color:var(--ctp-overlay2);"> / {{ profile.weekly_hours }}h {% trans "target" %}</span>
+        {% endif %}
+    </div>
+
     <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
         <h2 style="margin: 0; color: var(--ctp-mauve);">{% trans "Monthly overview" %}</h2>
         <a href="/vacation/{{ profile.id }}/" class="btn btn-secondary btn-sm" style="color: var(--ctp-teal); border-color: rgba(23,146,153,.3);">🏖 {% trans "Vacation overview" %}</a>
