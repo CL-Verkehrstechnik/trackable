@@ -830,7 +830,7 @@ msgid "open-ended"
 msgstr "unbefristet"
 
 #: templates/organizations/employee_profile_detail.html:55
-#msgid "No contract dates set"
+msgid "No contract dates set"
 msgstr "Keine Vertragsdaten hinterlegt"
 
 #: templates/organizations/employee_profile_detail.html:57
@@ -838,7 +838,7 @@ msgid "Set"
 msgstr "Festlegen"
 
 #: templates/organizations/employee_profile_detail.html:63
-#msgid "Contract start"
+msgid "Contract start"
 msgstr "Vertragsstart"
 
 #: templates/organizations/employee_profile_detail.html:67
@@ -1714,15 +1714,15 @@ msgid "Weekly target hours updated."
 msgstr "Wöchentliche Soll-Stunden aktualisiert."
 
 #: trackable/organizations/views.py:258
-#msgid "Invalid date format for contract start date."
+msgid "Invalid date format for contract start date."
 msgstr "Ungültiges Datumsformat für Vertragsstart."
 
 #: trackable/organizations/views.py:267
-#msgid "Invalid date format for contract end date."
+msgid "Invalid date format for contract end date."
 msgstr "Ungültiges Datumsformat für Vertragsende."
 
 #: trackable/organizations/views.py:279
-#msgid "Contract dates updated."
+msgid "Contract dates updated."
 msgstr "Vertragsdaten aktualisiert."
 
 #: trackable/organizations/views.py:445
