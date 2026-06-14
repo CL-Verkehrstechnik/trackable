@@ -239,10 +239,47 @@ def export_pdf(request, profile_id, year, month):
 # ── Timer API Endpoints ───────────────────────────────────────────────────────
 
 
+def _parse_client_timestamp(request):
+    """
+    Parse optional client_timestamp from request body (JSON or form).
+    Returns a timezone-aware datetime or None.
+    """
+    import json
+    from datetime import datetime
+
+    ts_str = None
+    if request.content_type == "application/json":
+        try:
+            body = json.loads(request.body)
+            ts_str = body.get("client_timestamp")
+        except (ValueError, AttributeError):
+            pass
+    else:
+        ts_str = request.POST.get("client_timestamp")
+
+    if not ts_str:
+        return None
+
+    try:
+        from django.utils.dateparse import parse_datetime
+        dt = parse_datetime(ts_str)
+        if dt is None:
+            return None
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt)
+        return dt
+    except (ValueError, TypeError):
+        return None
+
+
 @login_required
 @require_http_methods(["POST"])
 def start_timer(request, profile_id):
-    """Start a timer for a profile."""
+    """Start a timer for a profile.
+
+    Accepts optional client_timestamp (ISO 8601) so queued offline
+    starts record the correct start time.
+    """
     profile = get_object_or_404(Profile, pk=profile_id, user=request.user)
 
     existing_timer = ActiveTimer.objects.filter(
@@ -253,8 +290,11 @@ def start_timer(request, profile_id):
             {"error": "Timer already running for this profile"}, status=400
         )
 
+    client_ts = _parse_client_timestamp(request)
+    start_time = client_ts or timezone.now()
+
     timer = ActiveTimer.objects.create(
-        profile=profile, user=request.user, start_time=timezone.now(), is_paused=False
+        profile=profile, user=request.user, start_time=start_time, is_paused=False
     )
 
     return JsonResponse(
@@ -270,7 +310,11 @@ def start_timer(request, profile_id):
 @login_required
 @require_http_methods(["POST"])
 def pause_timer(request, profile_id):
-    """Pause a running timer."""
+    """Pause a running timer.
+
+    Accepts optional client_timestamp so queued offline pauses
+    record the correct pause time.
+    """
     profile = get_object_or_404(Profile, pk=profile_id, user=request.user)
 
     timer = ActiveTimer.objects.filter(profile=profile, user=request.user).first()
@@ -280,7 +324,8 @@ def pause_timer(request, profile_id):
     if timer.is_paused:
         return JsonResponse({"error": "Timer is already paused"}, status=400)
 
-    timer.pause_time = timezone.now()
+    client_ts = _parse_client_timestamp(request)
+    timer.pause_time = client_ts or timezone.now()
     timer.is_paused = True
     timer.save()
 
@@ -296,7 +341,11 @@ def pause_timer(request, profile_id):
 @login_required
 @require_http_methods(["POST"])
 def resume_timer(request, profile_id):
-    """Resume a paused timer."""
+    """Resume a paused timer.
+
+    Accepts optional client_timestamp so queued offline resumes
+    calculate the correct pause duration.
+    """
     profile = get_object_or_404(Profile, pk=profile_id, user=request.user)
 
     timer = ActiveTimer.objects.filter(profile=profile, user=request.user).first()
@@ -306,9 +355,10 @@ def resume_timer(request, profile_id):
     if not timer.is_paused:
         return JsonResponse({"error": "Timer is not paused"}, status=400)
 
-    now = timezone.now()
-    paused_duration = int((now - timer.pause_time).total_seconds())
-    timer.total_paused_seconds += paused_duration
+    client_ts = _parse_client_timestamp(request)
+    resume_time = client_ts or timezone.now()
+    paused_duration = int((resume_time - timer.pause_time).total_seconds())
+    timer.total_paused_seconds += max(0, paused_duration)
     timer.pause_time = None
     timer.is_paused = False
     timer.save()
@@ -321,16 +371,22 @@ def resume_timer(request, profile_id):
 @login_required
 @require_http_methods(["POST"])
 def stop_timer(request, profile_id):
-    """Stop timer and create TimeEntry."""
+    """Stop timer and create TimeEntry.
+
+    Accepts optional client_timestamp so queued offline stops
+    record the correct end time and duration.
+    """
     profile = get_object_or_404(Profile, pk=profile_id, user=request.user)
 
     timer = ActiveTimer.objects.filter(profile=profile, user=request.user).first()
     if not timer:
         return JsonResponse({"error": "No active timer found"}, status=404)
 
-    now = timezone.now()
+    client_ts = _parse_client_timestamp(request)
+    stop_time = client_ts or timezone.now()
+
     total_seconds = (
-        now - timer.start_time
+        stop_time - timer.start_time
     ).total_seconds() - timer.total_paused_seconds
 
     if total_seconds < 0:
@@ -340,7 +396,7 @@ def stop_timer(request, profile_id):
 
     entry_date = timer.start_time.date()
     start_time_obj = timer.start_time.time()
-    end_time_obj = now.time()
+    end_time_obj = stop_time.time()
 
     time_entry = TimeEntry.objects.create(
         profile=profile,
