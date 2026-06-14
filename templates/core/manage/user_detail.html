@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ managed_user.username }} – {% trans "Management" %}{% endblock %}
+{% block content %}
+<div style="margin-bottom:30px;">
+    <h1 style="color:var(--ctp-mauve);">{{ managed_user.username }}</h1>
+    <a href="{% url 'manage_user_list' %}" class="btn btn-secondary btn-sm">← {% trans "Back to Users" %}</a>
+</div>
+
+<div class="content" style="max-width: 500px;">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_username">{% trans "Username" %}</label>
+            <input type="text" id="id_username" value="{{ managed_user.username }}" disabled
+                   style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-surface0); color:var(--ctp-subtext0);">
+        </div>
+        <div class="form-group">
+            <label for="id_email">{% trans "Email" %}</label>
+            <input type="email" name="email" id="id_email" value="{{ managed_user.email }}" required
+                   style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text);">
+        </div>
+        <div class="form-group">
+            <label for="id_password">{% trans "New password" %}</label>
+            <input type="password" name="password" id="id_password" placeholder="{% trans 'Leave empty to keep current' %}"
+                   style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text);">
+            <small style="color:var(--ctp-overlay2);">{% trans "Only set if you want to change the password." %}</small>
+        </div>
+
+        <h3 style="color:var(--ctp-text); margin:24px 0 16px;">{% trans "Permissions" %}</h3>
+        <div class="form-group">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <input type="checkbox" name="is_active" {% if managed_user.is_active %}checked{% endif %}
+                       style="width:20px; height:20px; accent-color:var(--ctp-mauve);">
+                <span>{% trans "Active (can log in)" %}</span>
+            </label>
+        </div>
+        <div class="form-group">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <input type="checkbox" name="is_staff" {% if managed_user.is_staff %}checked{% endif %}
+                       style="width:20px; height:20px; accent-color:var(--ctp-mauve);">
+                <span>{% trans "Staff (can access Management panel)" %}</span>
+            </label>
+        </div>
+        <div class="form-group">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <input type="checkbox" name="is_superuser" {% if managed_user.is_superuser %}checked{% endif %}
+                       style="width:20px; height:20px; accent-color:var(--ctp-mauve);">
+                <span>{% trans "Superuser (full access)" %}</span>
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-form-submit" style="margin-top:16px;">
+            {% trans "Save changes" %}
+        </button>
+    </form>
+</div>
+{% endblock %}

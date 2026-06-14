@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "New user – Management" %}{% endblock %}
+{% block content %}
+<div style="margin-bottom:30px;">
+    <h1 style="color:var(--ctp-mauve);">{% trans "New user" %}</h1>
+    <a href="{% url 'manage_user_list' %}" class="btn btn-secondary btn-sm">← {% trans "Back to Users" %}</a>
+</div>
+
+<div class="content" style="max-width: 500px;">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_username">{% trans "Username" %}</label>
+            <input type="text" name="username" id="id_username" required
+                   style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text);">
+        </div>
+        <div class="form-group">
+            <label for="id_email">{% trans "Email" %}</label>
+            <input type="email" name="email" id="id_email" required
+                   style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text);">
+        </div>
+        <div class="form-group">
+            <label for="id_password">{% trans "Password" %}</label>
+            <input type="password" name="password" id="id_password" required
+                   style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text);">
+        </div>
+        <div class="form-group">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <input type="checkbox" name="is_staff"
+                       style="width:20px; height:20px; accent-color:var(--ctp-mauve);">
+                <span>{% trans "Staff (can access Management panel)" %}</span>
+            </label>
+        </div>
+        <div class="form-group">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <input type="checkbox" name="is_superuser"
+                       style="width:20px; height:20px; accent-color:var(--ctp-mauve);">
+                <span>{% trans "Superuser (full access)" %}</span>
+            </label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-form-submit" style="margin-top:10px;">
+            {% trans "Create user" %}
+        </button>
+    </form>
+</div>
+{% endblock %}

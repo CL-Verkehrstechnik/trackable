@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Management" %}{% endblock %}
+{% block content %}
+<div style="margin-bottom:30px;">
+    <h1 style="color:var(--ctp-mauve);">{% trans "Management" %}</h1>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:30px;">
+    <div class="card" style="text-align:center;">
+        <p style="color:var(--ctp-subtext0); margin-bottom:8px;">{% trans "Users" %}</p>
+        <p style="font-size:2.5rem; font-weight:bold; color:var(--ctp-mauve);">{{ user_count }}</p>
+        <p style="font-size:.85em; color:var(--ctp-overlay2);">{{ staff_count }} {% trans "staff" %} · {{ superuser_count }} {% trans "admins" %}</p>
+    </div>
+    <div class="card" style="text-align:center;">
+        <p style="color:var(--ctp-subtext0); margin-bottom:8px;">{% trans "Registration" %}</p>
+        <p style="font-size:1.2rem; font-weight:bold; color:{% if config.registration_enabled %}var(--ctp-green){% else %}var(--ctp-red){% endif %};">
+            {{ config.registration_enabled|yesno:_("Enabled,Disabled") }}
+        </p>
+    </div>
+</div>
+
+<div style="display:flex; gap:12px; flex-wrap:wrap;">
+    <a href="{% url 'manage_settings' %}" class="btn btn-primary">{% trans "Settings" %}</a>
+    <a href="{% url 'manage_user_list' %}" class="btn btn-primary">{% trans "Users" %}</a>
+    <form method="post" action="{% url 'manage_reset_setup' %}" style="display:inline;" onsubmit="return confirm('{% trans "Are you sure? New users will be redirected to the setup wizard." %}');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-secondary">{% trans "Reset setup wizard" %}</button>
+    </form>
+</div>
+{% endblock %}

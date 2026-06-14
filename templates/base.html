@@ -99,6 +99,9 @@
                 {% if user.is_org_manager %}
                 <a href="/org/" class="nav-link {% block nav_org %}{% endblock %}">{% trans "Organization" %}</a>
                 {% endif %}
+                {% if user.is_staff %}
+                <a href="/manage/" class="nav-link {% block nav_manage %}{% endblock %}">{% trans "Management" %}</a>
+                {% endif %}
                 <a href="/accounts/settings/" class="nav-link {% block nav_settings %}{% endblock %}">{% trans "Settings" %}</a>
                 <span class="nav-divider"></span>
                 <form method="post" action="/accounts/logout/" style="display:inline">

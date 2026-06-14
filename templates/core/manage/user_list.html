@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Users – Management" %}{% endblock %}
+{% block content %}
+<div style="margin-bottom:30px;">
+    <h1 style="color:var(--ctp-mauve);">{% trans "Users" %}</h1>
+    <div style="display:flex; gap:12px; margin-top:12px;">
+        <a href="{% url 'manage_dashboard' %}" class="btn btn-secondary btn-sm">← {% trans "Back to Management" %}</a>
+        <a href="{% url 'manage_user_create' %}" class="btn btn-primary btn-sm">+ {% trans "New user" %}</a>
+    </div>
+</div>
+
+<div style="overflow-x:auto;">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>{% trans "Username" %}</th>
+                <th>{% trans "Email" %}</th>
+                <th>{% trans "Staff" %}</th>
+                <th>{% trans "Admin" %}</th>
+                <th>{% trans "Active" %}</th>
+                <th>{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td><strong>{{ u.username }}</strong></td>
+                <td>{{ u.email }}</td>
+                <td>{% if u.is_staff %}✅{% endif %}</td>
+                <td>{% if u.is_superuser %}✅{% endif %}</td>
+                <td>{% if u.is_active %}✅{% else %}❌{% endif %}</td>
+                <td><a href="{% url 'manage_user_detail' u.id %}" class="btn btn-secondary btn-sm">{% trans "Edit" %}</a></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align:center; color:var(--ctp-subtext0);">{% trans "No users found." %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
