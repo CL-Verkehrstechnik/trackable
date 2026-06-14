@@ -138,7 +138,9 @@ def register(request):
     if request.user.is_authenticated:
         return redirect("home")
 
-    if settings.DISABLE_REGISTRATION:
+    from trackable.core.email import is_registration_disabled
+
+    if is_registration_disabled():
         messages.error(request, _("Registration is currently disabled."))
         return redirect("login")
 

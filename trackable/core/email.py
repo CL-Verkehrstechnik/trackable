@@ -39,3 +39,20 @@ def send_mail(subject, message, from_email, recipient_list, **kwargs):
         subject, message, from_email, recipient_list,
         connection=connection, **kwargs,
     )
+
+
+def is_registration_disabled():
+    """Check if registration is disabled.
+    
+    Returns True if DISABLE_REGISTRATION env var is True (override),
+    or if SiteConfiguration.registration_enabled is False.
+    """
+    from django.conf import settings
+    if settings.DISABLE_REGISTRATION:
+        return True
+    try:
+        from trackable.core.models import SiteConfiguration
+        return not SiteConfiguration.get().registration_enabled
+    except Exception:
+        # Table might not exist yet
+        return False
