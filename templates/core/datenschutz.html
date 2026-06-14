@@ -1,74 +1,69 @@
 {% extends "base.html" %}
-{% block title %}Datenschutz{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Privacy Policy" %}{% endblock %}
 
 {% block content %}
 <div class="content" style="max-width: 720px; margin: 0 auto;">
-    <h1>Datenschutzerklärung</h1>
-    <p class="text-muted" style="margin-bottom: 2rem;">Zuletzt aktualisiert: {% now "d.m.Y" %}</p>
+    <h1>{% trans "Privacy Policy" %}</h1>
+    <p class="text-muted" style="margin-bottom: 2rem;">{% trans "Last updated:" %} {% now "d.m.Y" %}</p>
 
     <section style="margin-bottom: 2rem;">
-        <h2>1. Verantwortlicher</h2>
+        <h2>{% trans "1. Data Controller" %}</h2>
         <hr class="divider">
         <p>
-            Verantwortlicher im Sinne der DSGVO ist:<br>
+            {% trans "Responsible party within the meaning of the GDPR:" %}<br>
             <strong style="color: var(--ctp-text);">webCommits web Designs</strong><br>
             <a href="https://www.webcommits.info" target="_blank" rel="noopener">www.webcommits.info</a>
         </p>
     </section>
 
     <section style="margin-bottom: 2rem;">
-        <h2>2. Erhobene Daten</h2>
+        <h2>{% trans "2. Collected Data" %}</h2>
         <hr class="divider">
         <p>
-            Diese Anwendung erhebt und speichert ausschließlich Daten, die du selbst eingibst:
+            {% trans "This application only collects and stores data that you enter yourself:" %}
         </p>
         <ul style="color: var(--ctp-subtext1); margin: 1rem 0 0 1.5rem; line-height: 1.9;">
-            <li>Benutzername und E-Mail-Adresse (Registrierung / Login)</li>
-            <li>Arbeitszeit-Einträge (Datum, Start-/Endzeit, Pausen)</li>
-            <li>Profil-Daten (Titel, Position, Stundenlohn)</li>
+            <li>{% trans "Username and email address (registration / login)" %}</li>
+            <li>{% trans "Work time entries (date, start/end time, breaks)" %}</li>
+            <li>{% trans "Profile data (title, position, hourly rate)" %}</li>
         </ul>
     </section>
 
     <section style="margin-bottom: 2rem;">
-        <h2>3. Zweck der Verarbeitung</h2>
+        <h2>{% trans "3. Purpose of Processing" %}</h2>
         <hr class="divider">
         <p>
-            Deine Daten werden ausschließlich zum Betrieb der Zeiterfassungs-Funktionen dieser Anwendung
-            verwendet. Eine Weitergabe an Dritte findet nicht statt.
+            {% blocktrans %}Your data is used exclusively for operating the time tracking functions of this application. No data is passed on to third parties.{% endblocktrans %}
         </p>
     </section>
 
     <section style="margin-bottom: 2rem;">
-        <h2>4. Datenspeicherung</h2>
+        <h2>{% trans "4. Data Storage" %}</h2>
         <hr class="divider">
         <p>
-            Alle Daten werden lokal in einer SQLite-Datenbank auf dem Server gespeichert.
-            Es werden keine externen Analyse-Dienste, Tracking-Cookies oder Werbenetzwerke verwendet.
+            {% blocktrans %}All data is stored locally in a SQLite database on the server. No external analytics services, tracking cookies or advertising networks are used.{% endblocktrans %}
         </p>
     </section>
 
     <section style="margin-bottom: 2rem;">
-        <h2>5. Deine Rechte</h2>
+        <h2>{% trans "5. Your Rights" %}</h2>
         <hr class="divider">
         <p>
-            Du hast das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung
-            deiner gespeicherten Daten. Wende dich dafür an den Verantwortlichen über
-            <a href="https://www.webcommits.info" target="_blank" rel="noopener">webcommits.info</a>.
+            {% blocktrans %}You have the right to information, correction, deletion and restriction of processing of your stored data. Contact the responsible party via{% endblocktrans %} <a href="https://www.webcommits.info" target="_blank" rel="noopener">webcommits.info</a>.
         </p>
     </section>
 
     <section style="margin-bottom: 2rem;">
-        <h2>6. Externe Schriftarten</h2>
+        <h2>{% trans "6. External Fonts" %}</h2>
         <hr class="divider">
         <p>
-            Diese Anwendung lädt die Schriftart <em>Inter</em> von Google Fonts. Dabei kann deine
-            IP-Adresse an Google-Server übermittelt werden. Weitere Informationen findest du in der
-            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Datenschutzerklärung von Google</a>.
+            {% blocktrans %}This application loads the font <em>Inter</em> from Google Fonts. Your IP address may be transmitted to Google servers. For more information, see the{% endblocktrans %} <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">{% trans "Google Privacy Policy" %}</a>.
         </p>
     </section>
 
     <div style="margin-top: 2rem;">
-        <a href="javascript:history.back()" class="btn btn-secondary btn-sm">← Zurück</a>
+        <a href="javascript:history.back()" class="btn btn-secondary btn-sm">← {% trans "Back" %}</a>
     </div>
 </div>
 {% endblock %}

@@ -85,42 +85,43 @@
     </style>
 </head>
 <body>
+    {% load i18n %}
     <div class="container">
         <div class="header">
-            <h1>Monatsbericht</h1>
+            <h1>{% trans "Monthly Report" %}</h1>
             <p>Trackable</p>
         </div>
         <div class="content">
-            <p>Hallo {{ user.first_name|default:user.username }},</p>
-            <p>hier ist Ihr monatlicher Bericht für <strong>{{ profile.title }}</strong> im <strong>{{ month_name }}</strong>:</p>
-            
+            <p>{% trans "Hello" %} {{ user.first_name|default:user.username }},</p>
+            <p>{% blocktrans %}here is your monthly report for <strong>{{ profile.title }}</strong> in <strong>{{ month_name }}</strong>:{% endblocktrans %}</p>
+
             <div class="summary">
                 <div class="summary-item">
-                    <span class="summary-label">Profil</span>
+                    <span class="summary-label">{% trans "Profile" %}</span>
                     <span class="summary-value">{{ profile.title }}</span>
                 </div>
                 <div class="summary-item">
-                    <span class="summary-label">Position</span>
+                    <span class="summary-label">{% trans "Position" %}</span>
                     <span class="summary-value">{{ profile.position }}</span>
                 </div>
                 <div class="summary-item">
-                    <span class="summary-label">Monat</span>
+                    <span class="summary-label">{% trans "Month" %}</span>
                     <span class="summary-value">{{ month_name }}</span>
                 </div>
                 <div class="summary-item">
-                    <span class="summary-label">Gesamtstunden</span>
+                    <span class="summary-label">{% trans "Total Hours" %}</span>
                     <span class="summary-value primary">{{ total_hours|floatformat:2 }}h</span>
                 </div>
                 <div class="summary-item">
-                    <span class="summary-label">Gesamtverdienst</span>
+                    <span class="summary-label">{% trans "Total Earnings" %}</span>
                     <span class="summary-value success">€{{ total_earnings|floatformat:2 }}</span>
                 </div>
             </div>
-            
-            <p>Vielen Dank für die Nutzung von Trackable!</p>
+
+            <p>{% trans "Thank you for using Trackable!" %}</p>
         </div>
         <div class="footer">
-            <p>Dies ist eine automatische E-Mail von Trackable. Bitte antworten Sie nicht auf diese E-Mail.</p>
+            <p>{% trans "This is an automated email from Trackable. Please do not reply to this email." %}</p>
         </div>
     </div>
 </body>

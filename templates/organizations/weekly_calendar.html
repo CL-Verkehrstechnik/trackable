@@ -596,9 +596,9 @@
             .then(function(r) { return r.json(); })
             .then(function(d) {
                 if (d.status === 'ok') { window.closeCreate(); location.reload(); }
-                else { alert('Error: ' + (d.error || 'Unknown')); }
+                else { alert('{% trans "Error:" %} ' + (d.error || '{% trans "Unknown" %}')); }
             })
-            .catch(function(err) { alert('Network error: ' + err.message); });
+            .catch(function(err) { alert('{% trans "Network error:" %} ' + err.message); });
         });
     }
 
@@ -651,9 +651,9 @@
             .then(function(r) { return r.json(); })
             .then(function(d) {
                 if (d.status === 'ok') { window.closeEdit(); location.reload(); }
-                else { alert('Error: ' + (d.error || 'Unknown')); }
+                else { alert('{% trans "Error:" %} ' + (d.error || '{% trans "Unknown" %}')); }
             })
-            .catch(function(err) { alert('Network error: ' + err.message); });
+            .catch(function(err) { alert('{% trans "Network error:" %} ' + err.message); });
         });
     }
 
