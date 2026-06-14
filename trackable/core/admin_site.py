@@ -8,7 +8,7 @@ from django.contrib.auth.admin import (
 from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.core.mail import send_mail
+from trackable.core.email import send_mail
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
