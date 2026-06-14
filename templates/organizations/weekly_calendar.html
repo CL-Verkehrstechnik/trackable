@@ -321,7 +321,7 @@
                 {% endfor %}
             </select>
             {% endif %}
-            {% if not can_edit %}
+            {% if not can_calendar_edit %}
             <span class="badge badge-peach">🕐 {% trans "View only" %}</span>
             {% endif %}
         </div>
@@ -417,7 +417,7 @@
             <label>{% trans "Employee" %}</label>
             <select name="profile_id" id="wc-create-profile" required>
                 {% for emp in employee_list %}
-                <option value="{{ emp.profile_id }}">{{ emp.name }} ({{ emp.profile_title }})</option>
+                <option value="{{ emp.profile_id }}"{% if emp.user_id == request.user.id %} data-own="true"{% endif %}>{{ emp.name }} ({{ emp.profile_title }})</option>
                 {% endfor %}
             </select>
 
@@ -471,45 +471,51 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 (function() {
     'use strict';
 
+    // ── Config ──
     const PX_PER_HOUR = {{ PIXEL_RATIO|floatformat:4 }};
     const GRID_START_MINS = {{ grid_start_mins }};
-    const CAN_EDIT = {{ can_edit|lower }};
     const IS_MANAGER = {{ is_manager|lower }};
-    const DAY_NAMES = {{ grid_columns|safe }};
+    const CURRENT_USER_ID = {{ request.user.id }};
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
 
-    // ── Position entries in the grid ──
+    // ── Position entries ──
     function positionEntries() {
         document.querySelectorAll('.wc-entry').forEach(function(el) {
             var startMins = parseInt(el.getAttribute('data-start-mins'), 10);
             var durationMins = parseInt(el.getAttribute('data-duration'), 10);
             if (isNaN(startMins) || isNaN(durationMins)) return;
-            var top = (startMins - GRID_START_MINS) * PX_PER_HOUR;
-            var height = durationMins * PX_PER_HOUR;
-            el.style.top = top + 'px';
-            el.style.height = Math.max(height, 20) + 'px';
+            el.style.top = ((startMins - GRID_START_MINS) * PX_PER_HOUR) + 'px';
+            el.style.height = Math.max(durationMins * PX_PER_HOUR, 20) + 'px';
         });
+    }
+
+    // ── Entry ownership check ──
+    function canModifyEntry(el) {
+        if (IS_MANAGER) return true;
+        var userId = parseInt(el.getAttribute('data-user-id'), 10);
+        return userId === CURRENT_USER_ID;
     }
 
     // ── Now indicator ──
     function updateNowLine() {
         var now = new Date();
-        var dayIdx = (now.getDay() + 6) % 7; // 0=Mon
+        var dayIdx = (now.getDay() + 6) % 7;
         var nowMins = now.getHours() * 60 + now.getMinutes();
         var nowTop = (nowMins - GRID_START_MINS) * PX_PER_HOUR;
         var line = document.getElementById('wc-now-line');
         if (!line) return;
-
         var col = document.querySelector('.wc-day-col[data-day="' + dayIdx + '"]');
-        if (col && nowMins >= GRID_START_MINS) {
+        if (col && nowMins >= GRID_START_MINS && col.offsetParent !== null) {
+            var wrap = col.closest('.wc-grid-wrap');
             var colRect = col.getBoundingClientRect();
-            var wrapRect = col.closest('.wc-grid-wrap').getBoundingClientRect();
+            var wrapRect = wrap.getBoundingClientRect();
             line.style.display = 'block';
-            line.style.left = colRect.left - wrapRect.left + 'px';
+            line.style.left = (colRect.left - wrapRect.left) + 'px';
             line.style.width = colRect.width + 'px';
             line.style.top = nowTop + 'px';
         } else {
@@ -522,16 +528,18 @@
     if (empSelect) {
         empSelect.addEventListener('change', function() {
             var params = new URLSearchParams(window.location.search);
-            if (this.value) {
-                params.set('employee', this.value);
-            } else {
-                params.delete('employee');
-            }
+            if (this.value) params.set('employee', this.value);
+            else params.delete('employee');
             window.location.search = params.toString();
         });
     }
 
-    // ── Create entry: cell click ──
+    // ── Helper: round minutes to nearest 30 ──
+    function roundToInterval(mins) {
+        return Math.round(mins / 30) * 30;
+    }
+
+    // ── Create modal ──
     var createModal = document.getElementById('wc-create-modal');
     var createForm = document.getElementById('wc-create-form');
     var createDate = document.getElementById('wc-create-date');
@@ -540,82 +548,72 @@
     var createProfile = document.getElementById('wc-create-profile');
     var createNotes = document.getElementById('wc-create-notes');
 
-    function openCreate(dateStr, startTime, endTime) {
+    function openCreate(dateStr, startTime) {
         createDate.value = dateStr;
         createStart.value = startTime;
-        // Default end = start + 1h
         var parts = startTime.split(':').map(Number);
         var endH = parts[0] + 1;
-        var endM = parts[1];
-        createEnd.value = (endH < 10 ? '0' : '') + endH + ':' + (endM < 10 ? '0' : '') + endM;
-
-        // Filter employee list if a specific employee is selected
-        if (empSelect && empSelect.value) {
-            for (var i = 0; i < createProfile.options.length; i++) {
-                createProfile.options[i].hidden = (createProfile.options[i].value !== empSelect.value && empSelect.value !== '');
+        createEnd.value = (endH < 10 ? '0' : '') + endH + ':' + (parts[1] < 10 ? '0' : '') + parts[1];
+        // Non-managers: auto-select their own profile
+        if (!IS_MANAGER) {
+            var ownOpt = createProfile.querySelector('option[data-own="true"]');
+            if (ownOpt) {
+                createProfile.value = ownOpt.value;
+                createProfile.style.display = 'none';
             }
         } else {
-            for (var i = 0; i < createProfile.options.length; i++) {
-                createProfile.options[i].hidden = false;
+            createProfile.style.display = '';
+            if (empSelect && empSelect.value) {
+                for (var i = 0; i < createProfile.options.length; i++) {
+                    createProfile.options[i].hidden = createProfile.options[i].value !== empSelect.value;
+                }
+            } else {
+                for (var i = 0; i < createProfile.options.length; i++) {
+                    createProfile.options[i].hidden = false;
+                }
             }
         }
-
         createNotes.value = '';
         createModal.style.display = 'flex';
     }
 
-    window.closeCreate = function() {
-        createModal.style.display = 'none';
-    };
+    window.closeCreate = function() { createModal.style.display = 'none'; };
 
     if (createForm) {
         createForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            var formData = new URLSearchParams();
-            formData.append('profile_id', createProfile.value);
-            formData.append('date', createDate.value);
-            formData.append('start_time', createStart.value);
-            formData.append('end_time', createEnd.value);
-            formData.append('notes', createNotes.value);
-
+            var fd = new URLSearchParams();
+            fd.append('profile_id', createProfile.value);
+            fd.append('date', createDate.value);
+            fd.append('start_time', createStart.value);
+            fd.append('end_time', createEnd.value);
+            fd.append('notes', createNotes.value);
             fetch('/org/weekly/create-entry/', {
                 method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: formData.toString(),
+                headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: fd.toString(),
             })
             .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.status === 'ok') {
-                    window.closeCreate();
-                    location.reload();
-                } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
-                }
+            .then(function(d) {
+                if (d.status === 'ok') { window.closeCreate(); location.reload(); }
+                else { alert('Error: ' + (d.error || 'Unknown')); }
             })
-            .catch(function(err) {
-                alert('Network error: ' + err.message);
-            });
+            .catch(function(err) { alert('Network error: ' + err.message); });
         });
     }
 
-    // ── Cell click handler ──
-    if (CAN_EDIT) {
-        document.querySelectorAll('.wc-cell').forEach(function(cell) {
-            cell.addEventListener('click', function() {
-                var col = this.closest('.wc-day-col');
-                var dayIdx = parseInt(col.getAttribute('data-day'), 10);
-                var dateStr = col.getAttribute('data-date');
-                var slot = this.getAttribute('data-slot');
-                if (!dateStr || !slot) return;
-                openCreate(dateStr, slot, '');
-            });
+    // ── Cell click → create ──
+    document.querySelectorAll('.wc-cell').forEach(function(cell) {
+        cell.addEventListener('click', function() {
+            var col = this.closest('.wc-day-col');
+            var dateStr = col.getAttribute('data-date');
+            var slot = this.getAttribute('data-slot');
+            if (!dateStr || !slot) return;
+            openCreate(dateStr, slot);
         });
-    }
+    });
 
-    // ── Edit entry ──
+    // ── Edit modal ──
     var editModal = document.getElementById('wc-edit-modal');
     var editForm = document.getElementById('wc-edit-form');
     var editEmployee = document.getElementById('wc-edit-employee');
@@ -625,10 +623,7 @@
     var editNotes = document.getElementById('wc-edit-notes');
     var currentEditId = null;
 
-    window.closeEdit = function() {
-        editModal.style.display = 'none';
-        currentEditId = null;
-    };
+    window.closeEdit = function() { editModal.style.display = 'none'; currentEditId = null; };
 
     function openEdit(entryId, userName, dateStr, startTime, endTime, notes) {
         currentEditId = entryId;
@@ -644,51 +639,39 @@
         editForm.addEventListener('submit', function(e) {
             e.preventDefault();
             if (!currentEditId) return;
-
-            var formData = new URLSearchParams();
-            formData.append('start_time', editStart.value);
-            formData.append('end_time', editEnd.value);
-            formData.append('notes', editNotes.value);
-
+            var fd = new URLSearchParams();
+            fd.append('start_time', editStart.value);
+            fd.append('end_time', editEnd.value);
+            fd.append('notes', editNotes.value);
             fetch('/org/weekly/update-entry/' + currentEditId + '/', {
                 method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: formData.toString(),
+                headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: fd.toString(),
             })
             .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.status === 'ok') {
-                    window.closeEdit();
-                    location.reload();
-                } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
-                }
+            .then(function(d) {
+                if (d.status === 'ok') { window.closeEdit(); location.reload(); }
+                else { alert('Error: ' + (d.error || 'Unknown')); }
             })
-            .catch(function(err) {
-                alert('Network error: ' + err.message);
-            });
+            .catch(function(err) { alert('Network error: ' + err.message); });
         });
     }
 
-    // ── Click on entry block ──
-    if (CAN_EDIT) {
-        document.querySelectorAll('.wc-entry').forEach(function(el) {
-            el.addEventListener('click', function(e) {
-                e.stopPropagation();
-                var entryId = this.getAttribute('data-entry-id');
-                var userName = this.getAttribute('data-user-name');
-                var start = this.getAttribute('data-start');
-                var end = this.getAttribute('data-end');
-                var notes = this.getAttribute('data-notes') || '';
-                var col = this.closest('.wc-day-col');
-                var dateStr = col ? col.getAttribute('data-date') : '';
-                openEdit(entryId, userName, dateStr, start, end, notes);
-            });
+    // ── Click on entry → edit (only own entries for non-managers) ──
+    document.querySelectorAll('.wc-entry').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!canModifyEntry(this)) return;
+            var entryId = this.getAttribute('data-entry-id');
+            var userName = this.getAttribute('data-user-name');
+            var start = this.getAttribute('data-start');
+            var end = this.getAttribute('data-end');
+            var notes = this.getAttribute('data-notes') || '';
+            var col = this.closest('.wc-day-col');
+            var dateStr = col ? col.getAttribute('data-date') : '';
+            openEdit(entryId, userName, dateStr, start, end, notes);
         });
-    }
+    });
 
     // ── Close modals on overlay click ──
     document.querySelectorAll('.wc-overlay').forEach(function(overlay) {
@@ -699,6 +682,63 @@
             }
         });
     });
+
+    // ── Drag & Drop (SortableJS) ──
+    var gridWrap = document.querySelector('.wc-grid-wrap');
+    if (gridWrap) {
+        var sortables = [];
+
+        document.querySelectorAll('.wc-day-col').forEach(function(col) {
+            var s = new Sortable(col, {
+                group: 'weekly-grid',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                direction: 'vertical',
+                filter: '.wc-cell',
+                draggable: '.wc-entry',
+                onStart: function(evt) {
+                    if (!canModifyEntry(evt.item)) {
+                        evt.preventDefault();
+                        return false;
+                    }
+                },
+                onEnd: function(evt) {
+                    var el = evt.item;
+                    if (!canModifyEntry(el)) return;
+
+                    var entryId = el.getAttribute('data-entry-id');
+                    var newDate = evt.to.getAttribute('data-date');
+
+                    // Calculate vertical position → start time
+                    var colRect = evt.to.getBoundingClientRect();
+                    var gridRect = gridWrap.getBoundingClientRect();
+                    var scrollTop = gridWrap.querySelector('.wc-body')?.scrollTop || 0;
+                    var relativeY = evt.clientY - colRect.top + scrollTop;
+                    var slotMins = roundToInterval(relativeY / PX_PER_HOUR + GRID_START_MINS);
+                    var newHour = Math.floor(slotMins / 60);
+                    var newMin = slotMins % 60;
+                    var newStart = (newHour < 10 ? '0' : '') + newHour + ':' + (newMin < 10 ? '0' : '') + newMin;
+
+                    var fd = new URLSearchParams();
+                    fd.append('new_date', newDate);
+                    fd.append('new_start_time', newStart);
+
+                    fetch('/org/weekly/move-entry/' + entryId + '/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: fd.toString(),
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        if (d.status !== 'ok') console.error('Move failed:', d.error);
+                        location.reload();
+                    })
+                    .catch(function() { location.reload(); });
+                }
+            });
+            sortables.push(s);
+        });
+    }
 
     // ── Init ──
     positionEntries();

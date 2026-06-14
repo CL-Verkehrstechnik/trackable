@@ -12,7 +12,7 @@ from trackable.organizations.forms import (
     OrganizationBrandingForm,
 )
 from trackable.organizations.decorators import org_manager_required
-from trackable.organizations.helpers import can_edit_time_entries
+from trackable.organizations.helpers import can_edit_time_entries, can_modify_entry, can_create_calendar_entry
 from trackable.profiles.models import Profile
 from trackable.core.models import Holiday
 from trackable.accounts.models import User
@@ -481,6 +481,7 @@ def org_weekly_calendar(request):
             "organization": organization,
             "is_manager": is_manager,
             "can_edit": can_edit_time_entries(request.user),
+            "can_calendar_edit": True,
             "week_data": week_data,
             "year": year,
             "week": week,
@@ -511,16 +512,15 @@ def move_entry(request, entry_id):
     from trackable.timetracking.models import TimeEntry
 
     entry = get_object_or_404(TimeEntry, pk=entry_id)
-    membership = request.user.organization_membership
 
-    # Prüfen: entry gehört zur gleichen Organisation
-    entry_org = getattr(
-        entry.profile.user, "organization_membership", None
-    )
-    if not entry_org or entry_org.organization != membership.organization:
-        return JsonResponse({"error": _("Entry does not belong to your organization.")}, status=403)
+    if not can_modify_entry(request.user, entry):
+        return JsonResponse(
+            {"error": _("You do not have permission to modify this entry.")}, status=403
+        )
 
     new_date_str = request.POST.get("new_date")
+    new_start_time_str = request.POST.get("new_start_time")
+
     if not new_date_str:
         return JsonResponse({"error": _("new_date is required.")}, status=400)
 
@@ -528,6 +528,27 @@ def move_entry(request, entry_id):
         entry.date = datetime.strptime(new_date_str, "%Y-%m-%d").date()
     except ValueError:
         return JsonResponse({"error": _("Invalid date format.")}, status=400)
+
+    if new_start_time_str:
+        try:
+            new_start = datetime.strptime(new_start_time_str, "%H:%M").time()
+            # Preserve duration by adjusting end_time
+            old_duration = (
+                entry.end_time.hour * 60 + entry.end_time.minute
+                - (entry.start_time.hour * 60 + entry.start_time.minute)
+            )
+            if old_duration <= 0:
+                old_duration = 60  # default 1h
+            new_start_mins = new_start.hour * 60 + new_start.minute
+            new_end_mins = new_start_mins + old_duration
+            new_end_hour = new_end_mins // 60
+            new_end_min = new_end_mins % 60
+            entry.start_time = new_start
+            entry.end_time = (
+                datetime.strptime(f"{new_end_hour:02d}:{new_end_min:02d}", "%H:%M").time()
+            )
+        except ValueError:
+            return JsonResponse({"error": _("Invalid time format.")}, status=400)
 
     entry.save()
     return JsonResponse({"status": "ok"})
@@ -644,11 +665,15 @@ def org_branding(request):
 
 
 @login_required
-@org_manager_required
 def create_entry(request):
-    """Create a time entry for an employee (manager action)."""
-    membership = request.user.organization_membership
-    organization = membership.organization
+    """Create a time entry.
+
+    - Managers can create entries for any employee in their org.
+    - Employees can only create entries for themselves.
+    """
+    membership = getattr(request.user, "organization_membership", None)
+    if not membership:
+        return JsonResponse({"error": _("No organization membership.")}, status=403)
 
     if request.method != "POST":
         return JsonResponse({"error": _("Method not allowed.")}, status=405)
@@ -665,9 +690,21 @@ def create_entry(request):
     try:
         profile = get_object_or_404(Profile, pk=profile_id)
         emp_membership = profile.user.organization_membership
-        if not emp_membership or emp_membership.organization != organization:
+        if not emp_membership or emp_membership.organization != membership.organization:
             return JsonResponse(
                 {"error": _("Profile does not belong to this organization.")}, status=403
+            )
+
+        # Employees can only create entries for themselves
+        if not membership.is_manager and profile.user != request.user:
+            return JsonResponse(
+                {"error": _("You can only create entries for yourself.")}, status=403
+            )
+
+        # Check calendar creation permission
+        if not can_create_calendar_entry(request.user, profile):
+            return JsonResponse(
+                {"error": _("You do not have permission to create this entry.")}, status=403
             )
 
         date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
@@ -697,17 +734,17 @@ def create_entry(request):
 
 
 @login_required
-@org_manager_required
 def update_entry(request, entry_id):
-    """Update a time entry's notes and/or times (manager action)."""
-    entry = get_object_or_404(TimeEntry, pk=entry_id)
-    membership = request.user.organization_membership
-    organization = membership.organization
+    """Update a time entry's notes and/or times.
 
-    emp_membership = entry.profile.user.organization_membership
-    if not emp_membership or emp_membership.organization != organization:
+    - Managers can update any entry in their org.
+    - Employees can only update their own entries.
+    """
+    entry = get_object_or_404(TimeEntry, pk=entry_id)
+
+    if not can_modify_entry(request.user, entry):
         return JsonResponse(
-            {"error": _("Entry does not belong to your organization.")}, status=403
+            {"error": _("You do not have permission to modify this entry.")}, status=403
         )
 
     if request.method != "POST":
