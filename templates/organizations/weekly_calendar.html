@@ -6,292 +6,705 @@
 
 {% block extra_css %}
 <style>
-.weekly-grid {
-    min-width: 750px;
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
+/* ── Layout ── */
+.wc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
 }
-.weekly-grid th,
-.weekly-grid td {
-    padding: 10px 8px;
+.wc-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.wc-nav .week-label {
+    font-weight: 700;
+    font-size: 1rem;
+    min-width: 220px;
     text-align: center;
-    border-bottom: 1px solid var(--ctp-overlay0);
-    vertical-align: top;
-    font-size: .85rem;
+    color: var(--ctp-text);
 }
-.weekly-grid thead th {
+
+/* ── Grid wrapper ── */
+.wc-grid-wrap {
+    overflow: auto;
+    border: 1px solid var(--ctp-overlay0);
+    border-radius: 10px;
+    background: var(--ctp-mantle);
+    max-height: calc(100vh - 260px);
+    position: relative;
+}
+.wc-grid {
+    display: flex;
+    flex-direction: column;
+    min-width: 700px;
+    position: relative;
+}
+
+/* ── Header row ── */
+.wc-header-row {
+    display: flex;
+    border-bottom: 2px solid var(--ctp-overlay0);
     position: sticky;
     top: 0;
+    z-index: 10;
     background: var(--ctp-mantle);
-    z-index: 3;
+}
+.wc-header-row .wc-time-label {
+    width: 60px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--ctp-overlay0);
+}
+.wc-header-row .wc-day-header {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    padding: 10px 4px;
     font-size: .78rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .05em;
     color: var(--ctp-mauve);
-    border-bottom: 2px solid var(--ctp-overlay0);
-    padding: 12px 8px;
-}
-.weekly-grid .name-cell {
-    position: sticky;
-    left: 0;
-    background: var(--ctp-mantle);
-    z-index: 2;
-    font-weight: 600;
-    text-align: left;
-    min-width: 140px;
     border-right: 1px solid var(--ctp-overlay0);
 }
-.weekly-grid .today {
-    background: rgba(202,158,230,.06);
+.wc-header-row .wc-day-header:last-child {
+    border-right: none;
 }
-.weekly-grid .today .name-cell {
+.wc-header-row .wc-day-header .date-num {
+    font-weight: 400;
+    font-size: .72rem;
+    color: var(--ctp-subtext0);
+    text-transform: none;
+    letter-spacing: 0;
+}
+.wc-header-row .wc-day-header.is-today {
     background: rgba(202,158,230,.08);
 }
-.weekly-grid tbody tr:hover td {
+
+/* ── Body ── */
+.wc-body {
+    display: flex;
+    position: relative;
+}
+
+/* ── Time column ── */
+.wc-time-col {
+    width: 60px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--ctp-overlay0);
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background: var(--ctp-mantle);
+}
+.wc-time-slot {
+    height: 64px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 2px 8px 0 0;
+    font-size: .72rem;
+    font-weight: 500;
+    color: var(--ctp-subtext0);
+    border-bottom: 1px solid var(--ctp-crust);
+}
+.wc-time-slot:last-child {
+    border-bottom: none;
+}
+
+/* ── Day columns ── */
+.wc-day-col {
+    flex: 1;
+    min-width: 100px;
+    position: relative;
+    border-right: 1px solid var(--ctp-overlay0);
+    background: var(--ctp-base);
+}
+.wc-day-col:last-child {
+    border-right: none;
+}
+.wc-day-col.is-today {
     background: rgba(202,158,230,.03);
 }
-.weekly-grid tbody tr:hover .name-cell {
+.wc-day-col .wc-cell {
+    height: 64px;
+    border-bottom: 1px solid var(--ctp-crust);
+    cursor: {% if can_edit %}pointer{% else %}default{% endif %};
+    position: relative;
+    z-index: 1;
+    transition: background .15s;
+}
+.wc-day-col .wc-cell:last-child {
+    border-bottom: none;
+}
+.wc-day-col .wc-cell:hover {
     background: rgba(202,158,230,.06);
 }
-.entry-chip {
+
+/* ── Entry blocks ── */
+.wc-entry {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    z-index: 3;
     background: rgba(202,158,230,.10);
-    border: 1px solid rgba(202,158,230,.18);
+    border-left: 3px solid var(--ctp-mauve);
     border-radius: 6px;
-    padding: 4px 8px;
-    margin-bottom: 4px;
+    padding: 4px 7px;
     font-size: .74rem;
-    cursor: grab;
-    transition: transform .15s, box-shadow .15s;
-    user-select: none;
+    cursor: {% if can_edit %}pointer{% else %}default{% endif %};
+    overflow: hidden;
+    transition: box-shadow .15s, transform .15s;
+    box-sizing: border-box;
 }
-.entry-chip:hover {
+.wc-entry:hover {
+    box-shadow: 0 3px 12px rgba(0,0,0,.15);
     transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(0,0,0,.2);
+    z-index: 4;
 }
-.entry-chip:active {
-    cursor: grabbing;
-}
-.entry-chip .time {
+.wc-entry .entry-name {
     font-weight: 600;
     color: var(--ctp-text);
+    font-size: .72rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.entry-chip .profile {
+.wc-entry .entry-time {
+    font-size: .65rem;
     color: var(--ctp-subtext0);
-    font-size: .68rem;
+    font-weight: 500;
 }
-.entry-chip .hours {
-    color: var(--ctp-mauve);
+.wc-entry .entry-notes {
+    font-size: .63rem;
+    color: var(--ctp-overlay2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+}
+
+/* ── Now indicator ── */
+.wc-now-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #e64553;
+    z-index: 6;
+    pointer-events: none;
+}
+.wc-now-line::before {
+    content: 'Now';
+    position: absolute;
+    right: 4px;
+    top: -8px;
+    font-size: .6rem;
     font-weight: 700;
-    font-size: .7rem;
+    color: #e64553;
+    background: var(--ctp-base);
+    padding: 0 4px;
+    border-radius: 3px;
 }
-.entry-chip.sortable-ghost {
-    opacity: .4;
-    background: var(--ctp-mauve) !important;
-}
-.entry-chip.sortable-chosen {
-    background: rgba(202,158,230,.25);
-    border-color: var(--ctp-mauve);
-}
-.day-total {
-    font-size: .85rem;
-    font-weight: 700;
-    color: var(--ctp-mauve);
-    padding-top: 4px;
-    border-top: 1px solid rgba(202,158,230,.12);
-    margin-top: 4px;
-}
-.week-total {
-    font-size: .9rem;
-    font-weight: 700;
-    color: var(--ctp-green);
-}
-.weekly-nav {
+
+/* ── Modal ── */
+.wc-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0,0,0,.4);
     display: flex;
     align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.wc-modal {
+    background: var(--ctp-mantle);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    border: 1px solid var(--ctp-overlay0);
+}
+.wc-modal h3 {
+    margin: 0 0 16px;
+    color: var(--ctp-mauve);
+    font-size: 1.1rem;
+}
+.wc-modal label {
+    display: block;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--ctp-subtext0);
+    margin-bottom: 4px;
+    margin-top: 12px;
+}
+.wc-modal label:first-of-type {
+    margin-top: 0;
+}
+.wc-modal input,
+.wc-modal select,
+.wc-modal textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--ctp-overlay0);
+    background: var(--ctp-base);
+    color: var(--ctp-text);
+    font-size: .9rem;
+    box-sizing: border-box;
+}
+.wc-modal textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+.wc-modal .modal-actions {
+    display: flex;
     gap: 10px;
-    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-top: 18px;
 }
-.weekly-nav .week-label {
-    font-weight: 700;
-    font-size: 1rem;
-    min-width: 200px;
-    text-align: center;
-}
-.empty-week {
+
+/* ── Empty state ── */
+.wc-empty {
     text-align: center;
     padding: 60px 20px;
     color: var(--ctp-subtext0);
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+    .wc-header-row .wc-day-header { min-width: 70px; font-size: .7rem; padding: 8px 2px; }
+    .wc-day-col { min-width: 70px; }
+    .wc-time-col { width: 44px; }
+    .wc-header-row .wc-time-label { width: 44px; }
+    .wc-time-slot { width: 44px; font-size: .65rem; padding-right: 4px; }
+    .wc-entry { font-size: .65rem; padding: 3px 5px; }
+    .wc-entry .entry-name { font-size: .65rem; }
+    .wc-entry .entry-time { font-size: .58rem; }
+    .wc-entry .entry-notes { display: none; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="content">
-    {% csrf_token %}
+{% csrf_token %}
 
-    <!-- Header + Navigation -->
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:24px;">
+<div class="content">
+    {# ── Header ── #}
+    <div class="wc-header">
         <div>
             <a href="/org/" class="btn btn-secondary btn-sm">← {% trans "Back" %}</a>
         </div>
-        <div class="weekly-nav">
+
+        <div class="wc-nav">
             <a href="{{ prev_url }}" class="btn btn-secondary btn-sm">←</a>
             <span class="week-label">
-                {% trans "Week" %} {{ week }} – {{ monday|date:"d.m." }}–{{ sunday|date:"d.m.Y" }}
+                📅 {% trans "Week" %} {{ week }} – {{ monday|date:"D d.m." }} – {{ sunday|date:"D d.m.Y" }}
             </span>
             <a href="{{ next_url }}" class="btn btn-secondary btn-sm">→</a>
-            <a href="{{ today_url }}" class="btn btn-primary btn-sm">{% trans "Today" %}</a>
+            <a href="{{ today_url }}" class="btn btn-primary btn-sm">📅 {% trans "Today" %}</a>
         </div>
-        <div>
-            {% if timer_only %}
-            <span class="badge badge-peach">🕐 {% trans "Timer only" %}</span>
+
+        <div style="display:flex; gap:8px; align-items:center;">
+            {% if is_manager %}
+            <select id="wc-employee-select" style="padding:6px 10px; border-radius:8px; border:1px solid var(--ctp-overlay0); background:var(--ctp-mantle); color:var(--ctp-text); font-size:.85rem;">
+                <option value="">{% trans "All employees" %}</option>
+                {% for emp in employee_list %}
+                <option value="{{ emp.user_id }}" {% if request.GET.employee|add:"0" == emp.user_id %}selected{% endif %}>
+                    {{ emp.name }} ({{ emp.profile_title }})
+                </option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            {% if not can_edit %}
+            <span class="badge badge-peach">🕐 {% trans "View only" %}</span>
             {% endif %}
         </div>
     </div>
 
-    {% if week_data %}
-    <!-- Grid -->
-    <div style="overflow-x:auto; margin-bottom:20px;">
-        <table class="weekly-grid" data-week-dates='[{% for d in week_dates %}"{{ d|date:'Y-m-d' }}"{% if not forloop.last %},{% endif %}{% endfor %}]'>
-            <thead>
-                <tr>
-                    <th class="name-cell">{% trans "Employee" %}</th>
-                    {% for d in week_dates %}
-                    <th class="col-date">
-                        <div>{{ d|date:"D" }}</div>
-                        <div style="font-size:.72rem; font-weight:400; color:var(--ctp-subtext0);">{{ d|date:"d.m." }}</div>
-                    </th>
-                    {% endfor %}
-                    <th style="color:var(--ctp-green);">∑</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for wd in week_data %}
-                <tr>
-                    <td class="name-cell">
-                        <div style="font-weight:600;">{{ wd.user.get_full_name|default:wd.user.username }}</div>
-                        <div style="font-size:.72rem; color:var(--ctp-subtext0);">{{ wd.membership.get_role_display }}</div>
-                    </td>
-                    {% for cell in wd.day_cells %}
-                    <td class="col-date" data-col="{{ forloop.counter0 }}">
-                        <div class="entries-container" data-col="{{ forloop.counter0 }}">
-                            {% if cell.entries %}
-                            {% for e in cell.entries %}
-                            <div class="entry-chip" data-entry-id="{{ e.entry.id }}">
-                                <div class="time">{{ e.entry.start_time|time:"H:i" }}–{{ e.entry.end_time|time:"H:i" }}</div>
-                                <div class="profile">{{ e.profile_title }}</div>
-                                <div class="hours">{{ e.entry.hours_worked|floatformat:1 }}h</div>
-                            </div>
-                            {% endfor %}
-                            {% endif %}
-                        </div>
-                        <div class="day-total">{{ cell.total|floatformat:1 }}h</div>
-                    </td>
-                    {% endfor %}
-                    <td class="week-total">{{ wd.total_weekly }}h</td>
-                </tr>
+    {# ── Grid ── #}
+    <div class="wc-grid-wrap">
+        <div class="wc-grid">
+            {# Header row #}
+            <div class="wc-header-row">
+                <div class="wc-time-label"></div>
+                {% for d in week_dates %}
+                <div class="wc-day-header{% if d == today %} is-today{% endif %}">
+                    <div>{{ d|date:"D" }}</div>
+                    <div class="date-num">{{ d|date:"d.m." }}</div>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+
+            {# Body #}
+            <div class="wc-body">
+                {# Time labels #}
+                <div class="wc-time-col">
+                    {% for slot in time_slots %}
+                    <div class="wc-time-slot">{{ slot }}</div>
+                    {% endfor %}
+                </div>
+
+                {# Day columns #}
+                {% for d in week_dates %}
+                {% with day_idx=forloop.counter0 %}
+                <div class="wc-day-col{% if d == today %} is-today{% endif %}" data-day="{{ day_idx }}" data-date="{{ d|date:'Y-m-d' }}">
+                    {% for slot in time_slots %}
+                    <div class="wc-cell" data-slot="{{ slot }}"></div>
+                    {% endfor %}
+
+                    {# Entries (positioned by JS) #}
+                    {% for entry in grid_entries %}
+                    {% if entry.day_idx == day_idx %}
+                    <div class="wc-entry"
+                         data-entry-id="{{ entry.entry_id }}"
+                         data-profile-id="{{ entry.profile_id }}"
+                         data-user-id="{{ entry.user_id }}"
+                         data-user-name="{{ entry.user_name }}"
+                         data-start="{{ entry.start_time_str }}"
+                         data-end="{{ entry.end_time_str }}"
+                         data-start-mins="{{ entry.start_mins }}"
+                         data-duration="{{ entry.duration_mins }}"
+                         data-notes="{{ entry.notes|escapejs }}"
+                         data-hours="{{ entry.hours_worked|floatformat:1 }}">
+                        <div class="entry-name">{{ entry.user_name }}</div>
+                        <div class="entry-time">{{ entry.start_time_str }}–{{ entry.end_time_str }}</div>
+                        {% if entry.notes %}
+                        <div class="entry-notes">{{ entry.notes|truncatewords:8 }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% endwith %}
+                {% endfor %}
+            </div>
+
+            {# Now indicator #}
+            <div id="wc-now-line" class="wc-now-line" style="display:none;"></div>
+        </div>
     </div>
 
-    <!-- Legend -->
-    <div style="display:flex; gap:20px; font-size:.78rem; color:var(--ctp-subtext0); flex-wrap:wrap; padding-top:12px; border-top:1px solid var(--ctp-overlay0);">
-        {% if is_manager and not timer_only %}
-        <span>💡 {% trans "Entries are draggable between days (manager only). Drag an entry to move it to a different day." %}</span>
-        {% else %}
-        <span>💡 {% trans "View your team's time entries for this week. Managers can drag entries between days." %}</span>
-        {% endif %}
-    </div>
-
-    {% else %}
-    <div class="empty-week">
+    {# ── Empty state ── #}
+    {% if not grid_entries and not week_data %}
+    <div class="wc-empty">
         <div style="font-size:2.5rem; margin-bottom:16px;">📅</div>
-        <h2>{% trans "No data for this week" %}</h2>
-        <p style="color:var(--ctp-subtext0);">{% trans "There are no time entries in this week." %}</p>
+        <h2>{% trans "No entries for this week" %}</h2>
+        <p style="color:var(--ctp-subtext0);">{% trans "There are no time entries in this period." %}</p>
     </div>
     {% endif %}
+
+    {# ── Legend ── #}
+    <div style="display:flex; gap:20px; font-size:.78rem; color:var(--ctp-subtext0); flex-wrap:wrap; padding-top:12px; margin-top:12px; border-top:1px solid var(--ctp-overlay0);">
+        {% if can_edit %}
+        <span>💡 {% trans "Click an empty cell to add a time entry. Click an existing entry to edit." %}</span>
+        {% else %}
+        <span>💡 {% trans "View your team's time entries. Managers can add and edit entries." %}</span>
+        {% endif %}
+    </div>
 </div>
+
+{# ── Hidden: Create & Edit modals ── #}
+<div id="wc-create-modal" class="wc-overlay" style="display:none;">
+    <div class="wc-modal">
+        <h3>{% trans "New time entry" %}</h3>
+        <form id="wc-create-form">
+            <label>{% trans "Employee" %}</label>
+            <select name="profile_id" id="wc-create-profile" required>
+                {% for emp in employee_list %}
+                <option value="{{ emp.profile_id }}">{{ emp.name }} ({{ emp.profile_title }})</option>
+                {% endfor %}
+            </select>
+
+            <label>{% trans "Date" %}</label>
+            <input type="date" name="date" id="wc-create-date" required>
+
+            <label>{% trans "Start time" %}</label>
+            <input type="time" name="start_time" id="wc-create-start" required>
+
+            <label>{% trans "End time" %}</label>
+            <input type="time" name="end_time" id="wc-create-end" required>
+
+            <label>{% trans "Notes" %}</label>
+            <textarea name="notes" id="wc-create-notes" rows="2"></textarea>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeCreate()">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="wc-edit-modal" class="wc-overlay" style="display:none;">
+    <div class="wc-modal">
+        <h3>{% trans "Edit time entry" %}</h3>
+        <form id="wc-edit-form">
+            <label>{% trans "Employee" %}</label>
+            <p id="wc-edit-employee" style="font-weight:600; margin:0 0 8px; color:var(--ctp-text);"></p>
+
+            <label>{% trans "Date" %}</label>
+            <p id="wc-edit-date" style="font-weight:600; margin:0 0 8px; color:var(--ctp-text);"></p>
+
+            <label>{% trans "Start time" %}</label>
+            <input type="time" name="start_time" id="wc-edit-start" required>
+
+            <label>{% trans "End time" %}</label>
+            <input type="time" name="end_time" id="wc-edit-end" required>
+
+            <label>{% trans "Notes" %}</label>
+            <textarea name="notes" id="wc-edit-notes" rows="3"></textarea>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeEdit()">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 (function() {
     'use strict';
 
-    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
-                    document.cookie.split('; ').find(function(row) {
-                        return row.startsWith('csrftoken=');
-                    })?.split('=')[1];
+    const PX_PER_HOUR = {{ PIXEL_RATIO|floatformat:4 }};
+    const GRID_START_MINS = {{ grid_start_mins }};
+    const CAN_EDIT = {{ can_edit|lower }};
+    const IS_MANAGER = {{ is_manager|lower }};
+    const DAY_NAMES = {{ grid_columns|safe }};
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
 
-    var isManager = {{ is_manager|lower }};
-    var timerOnly = {{ timer_only|lower }};
+    // ── Position entries in the grid ──
+    function positionEntries() {
+        document.querySelectorAll('.wc-entry').forEach(function(el) {
+            var startMins = parseInt(el.getAttribute('data-start-mins'), 10);
+            var durationMins = parseInt(el.getAttribute('data-duration'), 10);
+            if (isNaN(startMins) || isNaN(durationMins)) return;
+            var top = (startMins - GRID_START_MINS) * PX_PER_HOUR;
+            var height = durationMins * PX_PER_HOUR;
+            el.style.top = top + 'px';
+            el.style.height = Math.max(height, 20) + 'px';
+        });
+    }
 
-    // Parse week dates from table data attribute
-    var table = document.querySelector('.weekly-grid');
-    var weekDates = JSON.parse(table.getAttribute('data-week-dates'));
-    var todayStr = new Date().toISOString().slice(0, 10);
+    // ── Now indicator ──
+    function updateNowLine() {
+        var now = new Date();
+        var dayIdx = (now.getDay() + 6) % 7; // 0=Mon
+        var nowMins = now.getHours() * 60 + now.getMinutes();
+        var nowTop = (nowMins - GRID_START_MINS) * PX_PER_HOUR;
+        var line = document.getElementById('wc-now-line');
+        if (!line) return;
 
-    // Assign data-date to cells and containers based on column index
-    document.querySelectorAll('.col-date').forEach(function(el) {
-        var col = parseInt(el.getAttribute('data-col'), 10) || 0;
-        var dateStr = weekDates[col];
-        el.setAttribute('data-date', dateStr);
-        if (dateStr === todayStr) {
-            el.classList.add('today');
+        var col = document.querySelector('.wc-day-col[data-day="' + dayIdx + '"]');
+        if (col && nowMins >= GRID_START_MINS) {
+            var colRect = col.getBoundingClientRect();
+            var wrapRect = col.closest('.wc-grid-wrap').getBoundingClientRect();
+            line.style.display = 'block';
+            line.style.left = colRect.left - wrapRect.left + 'px';
+            line.style.width = colRect.width + 'px';
+            line.style.top = nowTop + 'px';
+        } else {
+            line.style.display = 'none';
         }
-    });
-    document.querySelectorAll('.entries-container').forEach(function(el) {
-        var col = parseInt(el.getAttribute('data-col'), 10) || 0;
-        el.setAttribute('data-date', weekDates[col]);
-    });
+    }
 
-    // Drag & Drop only for managers, not in timer-only mode
-    if (isManager && !timerOnly) {
-        document.querySelectorAll('.entries-container').forEach(function(container) {
-            if (!container) return;
-            new Sortable(container, {
-                group: 'weekly-grid',
-                animation: 150,
-                ghostClass: 'sortable-ghost',
-                chosenClass: 'sortable-chosen',
-                onEnd: function(evt) {
-                    var entryId = evt.item.getAttribute('data-entry-id');
-                    var newDate = evt.to.getAttribute('data-date');
+    // ── Employee selector ──
+    var empSelect = document.getElementById('wc-employee-select');
+    if (empSelect) {
+        empSelect.addEventListener('change', function() {
+            var params = new URLSearchParams(window.location.search);
+            if (this.value) {
+                params.set('employee', this.value);
+            } else {
+                params.delete('employee');
+            }
+            window.location.search = params.toString();
+        });
+    }
 
-                    if (!entryId || !newDate) return;
-                    if (evt.from === evt.to && evt.oldIndex === evt.newIndex) return;
+    // ── Create entry: cell click ──
+    var createModal = document.getElementById('wc-create-modal');
+    var createForm = document.getElementById('wc-create-form');
+    var createDate = document.getElementById('wc-create-date');
+    var createStart = document.getElementById('wc-create-start');
+    var createEnd = document.getElementById('wc-create-end');
+    var createProfile = document.getElementById('wc-create-profile');
+    var createNotes = document.getElementById('wc-create-notes');
 
-                    var formData = new URLSearchParams();
-                    formData.append('new_date', newDate);
+    function openCreate(dateStr, startTime, endTime) {
+        createDate.value = dateStr;
+        createStart.value = startTime;
+        // Default end = start + 1h
+        var parts = startTime.split(':').map(Number);
+        var endH = parts[0] + 1;
+        var endM = parts[1];
+        createEnd.value = (endH < 10 ? '0' : '') + endH + ':' + (endM < 10 ? '0' : '') + endM;
 
-                    fetch('/org/weekly/move-entry/' + entryId + '/', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': csrfToken,
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: formData.toString(),
-                    })
-                    .then(function(r) { return r.json(); })
-                    .then(function(data) {
-                        if (data.status === 'ok') {
-                            location.reload();
-                        } else {
-                            console.error('Move failed:', data.error);
-                            location.reload();
-                        }
-                    })
-                    .catch(function() {
-                        location.reload();
-                    });
+        // Filter employee list if a specific employee is selected
+        if (empSelect && empSelect.value) {
+            for (var i = 0; i < createProfile.options.length; i++) {
+                createProfile.options[i].hidden = (createProfile.options[i].value !== empSelect.value && empSelect.value !== '');
+            }
+        } else {
+            for (var i = 0; i < createProfile.options.length; i++) {
+                createProfile.options[i].hidden = false;
+            }
+        }
+
+        createNotes.value = '';
+        createModal.style.display = 'flex';
+    }
+
+    window.closeCreate = function() {
+        createModal.style.display = 'none';
+    };
+
+    if (createForm) {
+        createForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var formData = new URLSearchParams();
+            formData.append('profile_id', createProfile.value);
+            formData.append('date', createDate.value);
+            formData.append('start_time', createStart.value);
+            formData.append('end_time', createEnd.value);
+            formData.append('notes', createNotes.value);
+
+            fetch('/org/weekly/create-entry/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData.toString(),
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.status === 'ok') {
+                    window.closeCreate();
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
                 }
+            })
+            .catch(function(err) {
+                alert('Network error: ' + err.message);
             });
         });
     }
+
+    // ── Cell click handler ──
+    if (CAN_EDIT) {
+        document.querySelectorAll('.wc-cell').forEach(function(cell) {
+            cell.addEventListener('click', function() {
+                var col = this.closest('.wc-day-col');
+                var dayIdx = parseInt(col.getAttribute('data-day'), 10);
+                var dateStr = col.getAttribute('data-date');
+                var slot = this.getAttribute('data-slot');
+                if (!dateStr || !slot) return;
+                openCreate(dateStr, slot, '');
+            });
+        });
+    }
+
+    // ── Edit entry ──
+    var editModal = document.getElementById('wc-edit-modal');
+    var editForm = document.getElementById('wc-edit-form');
+    var editEmployee = document.getElementById('wc-edit-employee');
+    var editDate = document.getElementById('wc-edit-date');
+    var editStart = document.getElementById('wc-edit-start');
+    var editEnd = document.getElementById('wc-edit-end');
+    var editNotes = document.getElementById('wc-edit-notes');
+    var currentEditId = null;
+
+    window.closeEdit = function() {
+        editModal.style.display = 'none';
+        currentEditId = null;
+    };
+
+    function openEdit(entryId, userName, dateStr, startTime, endTime, notes) {
+        currentEditId = entryId;
+        editEmployee.textContent = userName;
+        editDate.textContent = dateStr;
+        editStart.value = startTime;
+        editEnd.value = endTime;
+        editNotes.value = notes || '';
+        editModal.style.display = 'flex';
+    }
+
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!currentEditId) return;
+
+            var formData = new URLSearchParams();
+            formData.append('start_time', editStart.value);
+            formData.append('end_time', editEnd.value);
+            formData.append('notes', editNotes.value);
+
+            fetch('/org/weekly/update-entry/' + currentEditId + '/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData.toString(),
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.status === 'ok') {
+                    window.closeEdit();
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(function(err) {
+                alert('Network error: ' + err.message);
+            });
+        });
+    }
+
+    // ── Click on entry block ──
+    if (CAN_EDIT) {
+        document.querySelectorAll('.wc-entry').forEach(function(el) {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var entryId = this.getAttribute('data-entry-id');
+                var userName = this.getAttribute('data-user-name');
+                var start = this.getAttribute('data-start');
+                var end = this.getAttribute('data-end');
+                var notes = this.getAttribute('data-notes') || '';
+                var col = this.closest('.wc-day-col');
+                var dateStr = col ? col.getAttribute('data-date') : '';
+                openEdit(entryId, userName, dateStr, start, end, notes);
+            });
+        });
+    }
+
+    // ── Close modals on overlay click ──
+    document.querySelectorAll('.wc-overlay').forEach(function(overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                overlay.style.display = 'none';
+                if (overlay.id === 'wc-edit-modal') currentEditId = null;
+            }
+        });
+    });
+
+    // ── Init ──
+    positionEntries();
+    updateNowLine();
+    setInterval(updateNowLine, 60000);
+
 })();
 </script>
 {% endblock %}

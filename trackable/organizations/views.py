@@ -16,6 +16,8 @@ from trackable.organizations.helpers import can_edit_time_entries
 from trackable.profiles.models import Profile
 from trackable.core.models import Holiday
 from trackable.accounts.models import User
+from trackable.timetracking.models import TimeEntry
+import json
 from datetime import datetime, timedelta
 from django.utils import timezone as tz
 import calendar
@@ -409,12 +411,76 @@ def org_weekly_calendar(request):
     next_iso = next_monday.isocalendar()
     today_iso = today.isocalendar()
 
+    # ── Time slots (from org calendar settings) ──
+    interval = organization.cal_time_interval or 60
+    grid_start = organization.cal_start_time or tz.datetime.strptime("08:00", "%H:%M").time()
+    grid_end = organization.cal_end_time or tz.datetime.strptime("20:00", "%H:%M").time()
+
+    time_slots = []
+    current = tz.datetime.combine(monday, grid_start)
+    end_dt = tz.datetime.combine(monday, grid_end)
+    while current <= end_dt:
+        time_slots.append(current.strftime("%H:%M"))
+        current += timedelta(minutes=interval)
+
+    grid_start_mins = grid_start.hour * 60 + grid_start.minute
+    grid_end_mins = grid_end.hour * 60 + grid_end.minute
+    grid_total_mins = grid_end_mins - grid_start_mins
+
+    # ── Employee list for selector ──
+    employee_list = []
+    for m in memberships:
+        profiles = m.user.profiles.all()
+        employee_list.append({
+            "user_id": m.user.id,
+            "name": m.user.get_full_name() or m.user.username,
+            "profile_id": profiles[0].id if profiles else None,
+            "profile_title": profiles[0].title if profiles else "",
+        })
+
+    # ── Grid data (positioned entries) ──
+    grid_columns = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    grid_entries = []  # list of {entry_id, profile_title, user_name, day_idx, start_mins, end_mins, duration_mins, notes, date_str}
+
+    for m in memberships:
+        user = m.user
+        for profile in user.profiles.all():
+            day_entries = profile.time_entries.filter(
+                date__gte=monday, date__lte=sunday
+            ).order_by("date", "start_time")
+
+            for entry in day_entries:
+                day_idx = entry.date.weekday()
+                start_mins = entry.start_time.hour * 60 + entry.start_time.minute
+                end_mins = entry.end_time.hour * 60 + entry.end_time.minute
+                duration_mins = end_mins - start_mins
+                grid_entries.append({
+                    "entry_id": entry.id,
+                    "profile_title": profile.title,
+                    "user_name": user.get_full_name() or user.username,
+                    "user_id": user.id,
+                    "profile_id": profile.id,
+                    "date_str": entry.date.isoformat(),
+                    "day_idx": day_idx,
+                    "start_mins": start_mins,
+                    "end_mins": end_mins,
+                    "duration_mins": max(duration_mins, 15),
+                    "start_time_str": entry.start_time.strftime("%H:%M"),
+                    "end_time_str": entry.end_time.strftime("%H:%M"),
+                    "notes": entry.notes or "",
+                    "hours_worked": float(entry.hours_worked),
+                })
+
+    PX_PER_HOUR = 64
+    px_per_min = PX_PER_HOUR / 60
+
     return render(
         request,
         "organizations/weekly_calendar.html",
         {
             "organization": organization,
             "is_manager": is_manager,
+            "can_edit": can_edit_time_entries(request.user),
             "week_data": week_data,
             "year": year,
             "week": week,
@@ -425,6 +491,16 @@ def org_weekly_calendar(request):
             "next_url": f"?year={next_iso[0]}&week={next_iso[1]}",
             "today_url": f"?year={today_iso[0]}&week={today_iso[1]}",
             "timer_only": not can_edit_time_entries(request.user),
+            # New grid data
+            "time_slots": time_slots,
+            "grid_start": grid_start.strftime("%H:%M"),
+            "grid_end": grid_end.strftime("%H:%M"),
+            "grid_start_mins": grid_start_mins,
+            "grid_total_mins": grid_total_mins,
+            "PIXEL_RATIO": px_per_min,
+            "employee_list": employee_list,
+            "grid_entries": grid_entries,
+            "grid_columns": grid_columns,
         },
     )
 
@@ -565,3 +641,93 @@ def org_branding(request):
         "form": form,
         "organization": org,
     })
+
+
+@login_required
+@org_manager_required
+def create_entry(request):
+    """Create a time entry for an employee (manager action)."""
+    membership = request.user.organization_membership
+    organization = membership.organization
+
+    if request.method != "POST":
+        return JsonResponse({"error": _("Method not allowed.")}, status=405)
+
+    profile_id = request.POST.get("profile_id")
+    date_str = request.POST.get("date")
+    start_time_str = request.POST.get("start_time")
+    end_time_str = request.POST.get("end_time")
+    notes = request.POST.get("notes", "")
+
+    if not all([profile_id, date_str, start_time_str, end_time_str]):
+        return JsonResponse({"error": _("Missing required fields.")}, status=400)
+
+    try:
+        profile = get_object_or_404(Profile, pk=profile_id)
+        emp_membership = profile.user.organization_membership
+        if not emp_membership or emp_membership.organization != organization:
+            return JsonResponse(
+                {"error": _("Profile does not belong to this organization.")}, status=403
+            )
+
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+        start = datetime.strptime(start_time_str, "%H:%M").time()
+        end = datetime.strptime(end_time_str, "%H:%M").time()
+
+        entry = TimeEntry.objects.create(
+            profile=profile,
+            date=date_obj,
+            start_time=start,
+            end_time=end,
+            notes=notes,
+            pause_duration=0,
+        )
+        return JsonResponse({
+            "status": "ok",
+            "entry": {
+                "id": entry.id,
+                "date": date_str,
+                "start_time": start_time_str,
+                "end_time": end_time_str,
+                "notes": notes,
+            },
+        })
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+@login_required
+@org_manager_required
+def update_entry(request, entry_id):
+    """Update a time entry's notes and/or times (manager action)."""
+    entry = get_object_or_404(TimeEntry, pk=entry_id)
+    membership = request.user.organization_membership
+    organization = membership.organization
+
+    emp_membership = entry.profile.user.organization_membership
+    if not emp_membership or emp_membership.organization != organization:
+        return JsonResponse(
+            {"error": _("Entry does not belong to your organization.")}, status=403
+        )
+
+    if request.method != "POST":
+        return JsonResponse({"error": _("Method not allowed.")}, status=405)
+
+    try:
+        data = json.loads(request.body) if request.content_type == "application/json" else request.POST
+    except (json.JSONDecodeError, AttributeError):
+        data = request.POST
+
+    notes = data.get("notes")
+    start_time_str = data.get("start_time")
+    end_time_str = data.get("end_time")
+
+    if notes is not None:
+        entry.notes = notes
+    if start_time_str:
+        entry.start_time = datetime.strptime(start_time_str, "%H:%M").time()
+    if end_time_str:
+        entry.end_time = datetime.strptime(end_time_str, "%H:%M").time()
+
+    entry.save()
+    return JsonResponse({"status": "ok"})
