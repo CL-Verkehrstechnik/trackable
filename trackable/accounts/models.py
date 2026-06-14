@@ -13,5 +13,9 @@ class User(AbstractUser):
         membership = getattr(self, "organization_membership", None)
         return membership is not None and membership.is_manager
 
+    @property
+    def is_org_member(self):
+        return hasattr(self, "organization_membership") and self.organization_membership is not None
+
     def __str__(self):
         return self.username

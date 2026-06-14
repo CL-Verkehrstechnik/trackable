@@ -11,5 +11,9 @@
         <p style="color:var(--ctp-subtext0); margin-bottom:5px;">{% trans "Role" %}</p>
         <p style="font-size:1.5rem; font-weight:bold; color:var(--ctp-mauve);">{{ membership.get_role_display }}</p>
     </div>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:24px;">
+        <a href="/org/weekly/" class="btn btn-primary">📅 {% trans "Weekly Calendar" %}</a>
+        <a href="/org/team-calendar/" class="btn btn-secondary">👥 {% trans "Team Calendar" %}</a>
+    </div>
 </div>
 {% endblock %}

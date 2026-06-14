@@ -96,7 +96,7 @@
             {% if user.is_authenticated %}
                 <a href="/app/" class="nav-link {% block nav_home %}{% endblock %}">{% trans "Dashboard" %}</a>
                 <a href="/profiles/" class="nav-link {% block nav_profiles %}{% endblock %}">{% trans "Profiles" %}</a>
-                {% if user.is_org_manager %}
+                {% if user.is_org_member %}
                 <a href="/org/" class="nav-link {% block nav_org %}{% endblock %}">{% trans "Organization" %}</a>
                 {% endif %}
                 {% if user.is_staff %}
