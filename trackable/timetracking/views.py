@@ -261,12 +261,16 @@ def _parse_client_timestamp(request):
         return None
 
     try:
+        from datetime import timezone as dt_timezone
         from django.utils.dateparse import parse_datetime
         dt = parse_datetime(ts_str)
         if dt is None:
             return None
         if timezone.is_naive(dt):
             dt = timezone.make_aware(dt)
+        # Normalize to UTC so all timer math is consistent
+        # (ActiveTimer.start_time is stored as UTC by Django)
+        dt = dt.astimezone(dt_timezone.utc)
         return dt
     except (ValueError, TypeError):
         return None
