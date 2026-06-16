@@ -103,6 +103,20 @@ def toggle_time_tracking_mode(request):
 
 @login_required
 @org_manager_required
+def toggle_holidays(request):
+    organization = request.user.organization_membership.organization
+    organization.holidays_enabled = not organization.holidays_enabled
+    organization.save()
+    status = _("enabled") if organization.holidays_enabled else _("disabled")
+    messages.success(
+        request,
+        _("Holidays %(status)s.") % {"status": status},
+    )
+    return redirect("org_dashboard")
+
+
+@login_required
+@org_manager_required
 def employee_create(request):
     membership = request.user.organization_membership
     organization = membership.organization

@@ -85,13 +85,14 @@ class VacationEntry(models.Model):
         from datetime import timedelta
         from trackable.core.models import Holiday
 
-        qs = Holiday.objects.filter(date__range=[self.start_date, self.end_date])
+        holiday_dates = set()
         org = getattr(self.profile.user, "organization_membership", None)
-        if org:
+        if org and org.organization.holidays_enabled:
+            qs = Holiday.objects.filter(date__range=[self.start_date, self.end_date])
             qs = qs.filter(organization=org.organization) | qs.filter(
                 organization__isnull=True
             )
-        holiday_dates = set(qs.values_list("date", flat=True))
+            holiday_dates = set(qs.values_list("date", flat=True))
 
         count = 0
         current = self.start_date

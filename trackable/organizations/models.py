@@ -23,8 +23,13 @@ class Organization(models.Model):
         ],
         verbose_name="Time tracking mode",
     )
+    holidays_enabled = models.BooleanField(
+        default=True,
+        verbose_name=_("Holidays enabled"),
+        help_text=_("When disabled, holidays are not deducted from vacation workday calculations."),
+    )
 
-    # Team Calendar Settings
+    # Weekly Calendar Settings
     cal_week_starts_on = models.IntegerField(
         default=1,
         choices=[(0, "Sunday"), (1, "Monday")],

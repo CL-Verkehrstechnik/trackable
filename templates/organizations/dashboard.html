@@ -56,9 +56,33 @@
                 {% endif %}
             </span>
         </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:.9rem; font-weight:600;">🎌 {% trans "Holidays" %}</span>
+            <form method="post" action="/org/toggle-holidays/" style="display:inline;">
+                {% csrf_token %}
+                <select name="holidays" onchange="this.form.submit()"
+                        style="padding:6px 12px; border-radius:8px;
+                               border:1px solid var(--ctp-overlay0);
+                               background:var(--ctp-mantle); color:var(--ctp-text);
+                               font-size:.9rem; cursor:pointer;">
+                    <option value="enabled" {% if organization.holidays_enabled %}selected{% endif %}>
+                        🟢 {% trans "Enabled" %}
+                    </option>
+                    <option value="disabled" {% if not organization.holidays_enabled %}selected{% endif %}>
+                        🔴 {% trans "Disabled" %}
+                    </option>
+                </select>
+            </form>
+            <span style="font-size:.82rem; color:var(--ctp-subtext0);">
+                {% if organization.holidays_enabled %}
+                    🟢 {% trans "Holidays are deducted from vacation days" %}
+                {% else %}
+                    🔴 {% trans "Holidays are ignored in vacation calculation" %}
+                {% endif %}
+            </span>
+        </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap; min-width:150px; text-align:right;">
             <a href="/org/weekly/" class="btn btn-primary btn-sm">📅 {% trans "Weekly Calendar" %}</a>
-            <a href="/org/team-calendar/" class="btn btn-secondary btn-sm">👥 {% trans "Team Calendar" %}</a>
             <a href="/org/branding/" class="btn btn-secondary btn-sm" style="min-height:44px;">🎨 {% trans "Branding" %}</a>
         </div>
     </div>
