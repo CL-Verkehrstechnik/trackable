@@ -18,11 +18,11 @@ RETENTION_DAYS=30          # Backups älter als 30 Tage werden gelöscht
 LOG_FILE="${BACKUP_DIR}/backup.log"
 
 # ── Container identifizieren ─────────────────────────────────────────────────
-# Sucht den Django-Container (nicht nginx!) anhand des Image-Namens.
-# Der Image-Name m5wkwnpnt9f5th648tmwmcvs_django ist stabil, nur der Tag
-# (Commit-Hash) ändert sich pro Deployment – --filter ancestor matcht ohne Tag.
+# Sucht den Django-Container (nicht nginx!) anhand von Coolify-Projektlabel
+# und Containername (enthält "django").
 DJANGO_CONTAINER=$(docker ps \
-  --filter "ancestor=m5wkwnpnt9f5th648tmwmcvs_django" \
+  --filter "label=coolify.projectName=cl-seminare" \
+  --filter "name=django" \
   --format "{{.ID}}" \
   | head -n1)
 
