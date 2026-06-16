@@ -18,11 +18,11 @@ RETENTION_DAYS=30          # Backups älter als 30 Tage werden gelöscht
 LOG_FILE="${BACKUP_DIR}/backup.log"
 
 # ── Container identifizieren ─────────────────────────────────────────────────
-# Nutzt Coolify-Labels, die bei jedem Deployment gleich bleiben.
-# Alternativ: --filter "ancestor=m5wkwnpnt9f5th648tmwmcvs_django"
+# Sucht den Django-Container (nicht nginx!) anhand des Image-Namens.
+# Der Image-Name m5wkwnpnt9f5th648tmwmcvs_django ist stabil, nur der Tag
+# (Commit-Hash) ändert sich pro Deployment – --filter ancestor matcht ohne Tag.
 DJANGO_CONTAINER=$(docker ps \
-  --filter "label=coolify.projectName=cl-seminare" \
-  --filter "label=coolify.type=application" \
+  --filter "ancestor=m5wkwnpnt9f5th648tmwmcvs_django" \
   --format "{{.ID}}" \
   | head -n1)
 
@@ -32,10 +32,24 @@ if [ -z "$DJANGO_CONTAINER" ]; then
   exit 1
 fi
 
+# Container bestätigen (zur Diagnose)
+echo "$(date '+%F %T'): Docker-Container gefunden: ${DJANGO_CONTAINER}" | tee -a "$LOG_FILE"
+
 # ── Verzeichnisse anlegen ────────────────────────────────────────────────────
 mkdir -p "${BACKUP_DIR}/db"
 mkdir -p "${BACKUP_DIR}/media"
 mkdir -p "${BACKUP_DIR}/logs"
+
+# ── Prüfen, ob die DB-Datei im Container existiert ────────────────────────────
+if ! docker exec "$DJANGO_CONTAINER" test -f "$DB_CONTAINER_PATH" 2>/dev/null; then
+  echo "$(date '+%F %T'): FEHLER – Datei ${DB_CONTAINER_PATH} existiert nicht im Container ${DJANGO_CONTAINER}." \
+    | tee -a "$LOG_FILE"
+  echo "$(date '+%F %T'): INFO – Mounts des Containers:" | tee -a "$LOG_FILE"
+  docker inspect "$DJANGO_CONTAINER" --format '{{json .Mounts}}' \
+    | python3 -m json.tool 2>/dev/null \
+    | tee -a "$LOG_FILE"
+  exit 2
+fi
 
 # ── Datenbank sichern (via docker cp) ────────────────────────────────────────
 DB_BACKUP="${BACKUP_DIR}/db/seminare-db-$(date '+%F').sqlite3"
@@ -43,7 +57,7 @@ if docker cp "${DJANGO_CONTAINER}:${DB_CONTAINER_PATH}" "$DB_BACKUP"; then
   echo "$(date '+%F %T'): DB-Backup erfolgreich (${DB_BACKUP})" | tee -a "$LOG_FILE"
 else
   echo "$(date '+%F %T'): FEHLER – DB-Backup fehlgeschlagen!" | tee -a "$LOG_FILE"
-  exit 2
+  exit 3
 fi
 
 # ── Media-Dateien sichern (als tar.gz via docker exec) ───────────────────────
