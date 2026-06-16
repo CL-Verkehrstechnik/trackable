@@ -155,7 +155,7 @@
     border-radius: 6px;
     padding: 4px 7px;
     font-size: .74rem;
-    cursor: {% if can_edit %}pointer{% else %}default{% endif %};
+    cursor: {% if can_edit %}grab{% else %}default{% endif %};
     overflow: hidden;
     transition: box-shadow .15s, transform .15s;
     box-sizing: border-box;
@@ -164,6 +164,30 @@
     box-shadow: 0 3px 12px rgba(0,0,0,.15);
     transform: translateY(-1px);
     z-index: 4;
+}
+.wc-entry:active {
+    cursor: grabbing;
+}
+.wc-entry.dragging {
+    opacity: .5;
+    z-index: 20;
+}
+.wc-entry.drag-over {
+    box-shadow: 0 0 0 2px var(--ctp-mauve);
+}
+.wc-cell.drop-target {
+    background: rgba(202,158,230,.15);
+}
+.wc-cell.drop-target::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 3px;
+    background: var(--ctp-mauve);
+    border-radius: 2px;
+    opacity: .6;
 }
 .wc-entry .entry-name {
     font-weight: 600;
@@ -471,7 +495,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 (function() {
     'use strict';
@@ -683,61 +706,115 @@
         });
     });
 
-    // ── Drag & Drop (SortableJS) ──
+    // ── Drag & Drop (native HTML5) ──
     var gridWrap = document.querySelector('.wc-grid-wrap');
-    if (gridWrap) {
-        var sortables = [];
+    var draggedEntryId = null;
 
-        document.querySelectorAll('.wc-day-col').forEach(function(col) {
-            var s = new Sortable(col, {
-                group: 'weekly-grid',
-                animation: 150,
-                ghostClass: 'sortable-ghost',
-                direction: 'vertical',
-                filter: '.wc-cell',
-                draggable: '.wc-entry',
-                onStart: function(evt) {
-                    if (!canModifyEntry(evt.item)) {
-                        evt.preventDefault();
-                        return false;
-                    }
-                },
-                onEnd: function(evt) {
-                    var el = evt.item;
-                    if (!canModifyEntry(el)) return;
+    // Drag start on entry
+    document.querySelectorAll('.wc-entry').forEach(function(el) {
+        el.setAttribute('draggable', 'true');
 
-                    var entryId = el.getAttribute('data-entry-id');
-                    var newDate = evt.to.getAttribute('data-date');
-
-                    // Calculate vertical position → start time
-                    var colRect = evt.to.getBoundingClientRect();
-                    var gridRect = gridWrap.getBoundingClientRect();
-                    var scrollTop = gridWrap.querySelector('.wc-body')?.scrollTop || 0;
-                    var relativeY = evt.clientY - colRect.top + scrollTop;
-                    var slotMins = roundToInterval(relativeY / PX_PER_HOUR + GRID_START_MINS);
-                    var newHour = Math.floor(slotMins / 60);
-                    var newMin = slotMins % 60;
-                    var newStart = (newHour < 10 ? '0' : '') + newHour + ':' + (newMin < 10 ? '0' : '') + newMin;
-
-                    var fd = new URLSearchParams();
-                    fd.append('new_date', newDate);
-                    fd.append('new_start_time', newStart);
-
-                    fetch('/org/weekly/move-entry/' + entryId + '/', {
-                        method: 'POST',
-                        headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: fd.toString(),
-                    })
-                    .then(function(r) { return r.json(); })
-                    .then(function(d) {
-                        if (d.status !== 'ok') console.error('Move failed:', d.error);
-                        location.reload();
-                    })
-                    .catch(function() { location.reload(); });
-                }
-            });
-            sortables.push(s);
+        el.addEventListener('dragstart', function(e) {
+            if (!canModifyEntry(el)) {
+                e.preventDefault();
+                return false;
+            }
+            draggedEntryId = el.getAttribute('data-entry-id');
+            el.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            // Required for Firefox
+            e.dataTransfer.setData('text/plain', draggedEntryId);
         });
+
+        el.addEventListener('dragend', function(e) {
+            el.classList.remove('dragging');
+            // Remove all drop highlights
+            document.querySelectorAll('.wc-cell.drop-target').forEach(function(c) {
+                c.classList.remove('drop-target');
+            });
+            draggedEntryId = null;
+        });
+    });
+
+    // Drag over a day column
+    document.querySelectorAll('.wc-day-col').forEach(function(col) {
+        col.addEventListener('dragover', function(e) {
+            if (!draggedEntryId) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+
+            // Highlight the target cell
+            var cells = col.querySelectorAll('.wc-cell');
+            cells.forEach(function(c) { c.classList.remove('drop-target'); });
+            var targetCell = getTargetCell(col, e);
+            if (targetCell) {
+                targetCell.classList.add('drop-target');
+            }
+        });
+
+        col.addEventListener('dragleave', function(e) {
+            // Only remove highlight if we actually left the column
+            if (!col.contains(e.relatedTarget)) {
+                col.querySelectorAll('.wc-cell.drop-target').forEach(function(c) {
+                    c.classList.remove('drop-target');
+                });
+            }
+        });
+
+        col.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (!draggedEntryId) return;
+
+            var entryEl = document.querySelector('.wc-entry[data-entry-id="' + draggedEntryId + '"]');
+            if (!entryEl || !canModifyEntry(entryEl)) return;
+
+            var newDate = col.getAttribute('data-date');
+            var newTime = getTimeFromPosition(col, e);
+
+            col.querySelectorAll('.wc-cell.drop-target').forEach(function(c) {
+                c.classList.remove('drop-target');
+            });
+
+            var fd = new URLSearchParams();
+            fd.append('new_date', newDate);
+            fd.append('new_start_time', newTime);
+
+            fetch('/org/weekly/move-entry/' + draggedEntryId + '/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: fd.toString(),
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.status !== 'ok') console.error('Move failed:', d.error);
+                location.reload();
+            })
+            .catch(function() { location.reload(); });
+
+            draggedEntryId = null;
+        });
+    });
+
+    // Helper: find the cell closest to the mouse position
+    function getTargetCell(col, e) {
+        var cells = col.querySelectorAll('.wc-cell');
+        var colRect = col.getBoundingClientRect();
+        var relativeY = e.clientY - colRect.top;
+        var cellIndex = Math.floor(relativeY / 64);
+        cellIndex = Math.max(0, Math.min(cellIndex, cells.length - 1));
+        return cells[cellIndex];
+    }
+
+    // Helper: calculate start time from mouse position
+    function getTimeFromPosition(col, e) {
+        var colRect = col.getBoundingClientRect();
+        var relativeY = e.clientY - colRect.top;
+        // colRect.top accounts for scroll position,
+        // so relativeY is the position in the full content.
+        var slotMins = roundToInterval(relativeY / PX_PER_HOUR + GRID_START_MINS);
+        var newHour = Math.floor(slotMins / 60);
+        var newMin = slotMins % 60;
+        return (newHour < 10 ? '0' : '') + newHour + ':' + (newMin < 10 ? '0' : '') + newMin;
     }
 
     // ── Init ──
