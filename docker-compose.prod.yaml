@@ -4,6 +4,7 @@ services:
     container_name: trackable-app
     volumes:
       - 'db_data:/app/data'
+      - 'media_data:/app/media'
     environment:
       - SERVICE_FQDN_APP_8000
       - DJANGO_SETTINGS_MODULE=trackable.settings.prod
@@ -11,6 +12,7 @@ services:
       - 'SECRET_KEY=${SECRET_KEY:-}'
       - 'DEBUG=${DEBUG:-False}'
       - 'ALLOWED_HOSTS=${ALLOWED_HOSTS:-}'
+      - 'DISABLE_REGISTRATION=${DISABLE_REGISTRATION:-False}'
       - 'EMAIL_HOST=${EMAIL_HOST:-}'
       - 'EMAIL_PORT=${EMAIL_PORT:-587}'
       - 'EMAIL_USE_TLS=${EMAIL_USE_TLS:-True}'
@@ -52,12 +54,14 @@ services:
     container_name: trackable-cron
     volumes:
       - 'db_data:/app/data'
+      - 'media_data:/app/media'
     environment:
       - DJANGO_SETTINGS_MODULE=trackable.settings.prod
       - PYTHONUNBUFFERED=1
       - 'SECRET_KEY=${SECRET_KEY:-}'
       - 'DEBUG=${DEBUG:-False}'
       - 'ALLOWED_HOSTS=${ALLOWED_HOSTS:-}'
+      - 'DISABLE_REGISTRATION=${DISABLE_REGISTRATION:-False}'
       - 'EMAIL_HOST=${EMAIL_HOST:-}'
       - 'EMAIL_PORT=${EMAIL_PORT:-587}'
       - 'EMAIL_USE_TLS=${EMAIL_USE_TLS:-True}'
@@ -75,6 +79,8 @@ services:
 
 volumes:
   db_data:
+    driver: local
+  media_data:
     driver: local
 
 networks:

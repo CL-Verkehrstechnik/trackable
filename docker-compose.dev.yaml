@@ -7,14 +7,23 @@ services:
     user: root   # Dev läuft als root (Volume-Mount braucht Schreibzugriff auf Host-Dateien)
     volumes:
       - .:/app
+      - dev_data:/app/data
+      - dev_media:/app/media
     ports:
       - "8000:8000"
     environment:
       - DJANGO_SETTINGS_MODULE=trackable.settings.dev
       - DEBUG=True
+      - DISABLE_REGISTRATION=False
     command: >
       sh -c "python manage.py migrate --run-syncdb &&
              python manage.py compilemessages &&
              python manage.py runserver 0.0.0.0:8000"
     stdin_open: true
     tty: true
+
+volumes:
+  dev_data:
+    driver: local
+  dev_media:
+    driver: local
