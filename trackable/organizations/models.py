@@ -104,66 +104,6 @@ class Organization(models.Model):
 
 
 
-class CalendarEvent(models.Model):
-    """Ein Event im Team-Kalender einer Organisation."""
-    organization = models.ForeignKey(
-        Organization, on_delete=models.CASCADE, related_name="calendar_events"
-    )
-    created_by = models.ForeignKey(
-        "accounts.User",
-        on_delete=models.CASCADE,
-        related_name="created_calendar_events",
-    )
-    title = models.CharField(max_length=200)
-    notes = models.TextField(blank=True, null=True)
-    color = models.CharField(
-        max_length=20,
-        default="blue",
-        choices=[
-            ("blue", "Blue"),
-            ("red", "Red"),
-            ("green", "Green"),
-            ("yellow", "Yellow"),
-            ("purple", "Purple"),
-            ("gray", "Gray"),
-        ],
-    )
-    day_id = models.CharField(max_length=20, verbose_name="Day of week")
-    start_time = models.TimeField()
-    duration_minutes = models.PositiveIntegerField(default=60)
-    week_start = models.DateField(verbose_name="Monday of the week")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["week_start", "day_id", "start_time"]
-        verbose_name = "Calendar event"
-        verbose_name_plural = "Calendar events"
-
-    def __str__(self):
-        return f"{self.title} ({self.day_id} {self.start_time})"
-
-    @property
-    def end_time(self):
-        from datetime import datetime, timedelta, date
-        dummy = datetime.combine(date.today(), self.start_time)
-        end = dummy + timedelta(minutes=self.duration_minutes)
-        return end.time()
-
-    def to_json(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "notes": self.notes,
-            "color": self.color,
-            "day_id": self.day_id,
-            "start_time": self.start_time.strftime("%H:%M"),
-            "duration_minutes": self.duration_minutes,
-            "week_start": self.week_start.isoformat(),
-            "created_by": self.created_by_id,
-        }
-
-
 class OrganizationMembership(models.Model):
     ROLE_CHOICES = [
         ("manager", "Manager"),

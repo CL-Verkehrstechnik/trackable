@@ -1,20 +1,3 @@
-# German translations for trackable.
-# Copyright (C) 2026 webCommits web Designs
-#
-msgid ""
-msgstr ""
-"Project-Id-Version: trackable\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-14 16:06+0200\n"
-"PO-Revision-Date: 2026-02-27 00:00+0100\n"
-"Last-Translator: webCommits\n"
-"Language-Team: de\n"
-"Language: de\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-
 #: templates/accounts/login.html:3 templates/accounts/login.html:7
 #: templates/base.html:112
 msgid "Login"
@@ -136,7 +119,6 @@ msgstr ""
 #: templates/accounts/settings.html:21 templates/organizations/branding.html:30
 #: templates/organizations/employee_profile_detail.html:34
 #: templates/organizations/employee_profile_detail.html:71
-#: templates/organizations/team_calendar.html:386
 #: templates/organizations/weekly_calendar.html:438
 #: templates/organizations/weekly_calendar.html:465
 msgid "Save"
@@ -315,7 +297,6 @@ msgstr "Diese Anwendung lädt die Schriftart <em>Inter</em> von Google Fonts. Ih
 msgid "Google Privacy Policy"
 msgstr "Google-Datenschutzerklärung"
 #: templates/core/datenschutz.html:66 templates/core/impressum.html:38
-#: templates/organizations/team_calendar.html:280
 #: templates/organizations/weekly_calendar.html:301
 #: templates/timetracking/add_entry.html:9
 #: templates/timetracking/add_vacation.html:9
@@ -923,7 +904,6 @@ msgstr "Passen Sie das Erscheinungsbild für Ihre Firma an."
 #: templates/organizations/employee_profile_detail.html:37
 #: templates/organizations/employee_profile_detail.html:74
 #: templates/organizations/employee_remove.html:15
-#: templates/organizations/team_calendar.html:385
 #: templates/organizations/weekly_calendar.html:437
 #: templates/organizations/weekly_calendar.html:464
 #: templates/profiles/create.html:43 templates/profiles/create.html:45
@@ -1031,7 +1011,6 @@ msgstr "Wochenkalender"
 
 #: templates/organizations/dashboard.html:61
 #: templates/organizations/employee_dashboard.html:16
-#: templates/organizations/team_calendar.html:4
 msgid "Team Calendar"
 msgstr "Team-Kalender"
 
@@ -1245,7 +1224,6 @@ msgid "Date"
 msgstr "Datum"
 
 #: templates/organizations/employee_profile_detail.html:126
-#: templates/organizations/team_calendar.html:374
 #: templates/timetracking/home.html:41
 #: templates/timetracking/monthly_table.html:60
 #: templates/timetracking/vacation_overview.html:57
@@ -1364,7 +1342,6 @@ msgid "Delete this holiday?"
 msgstr "Diesen Feiertag löschen?"
 
 #: templates/organizations/holiday_list.html:47
-#: templates/organizations/team_calendar.html:384
 #: templates/profiles/detail.html:17
 #: templates/timetracking/monthly_table.html:82
 #: templates/timetracking/vacation_overview.html:78
@@ -1383,113 +1360,23 @@ msgstr ""
 "Fügen Sie Feiertage für Ihre Organisation hinzu. Sie werden automatisch bei "
 "der Berechnung der Urlaubsarbeitstage ausgeschlossen."
 
-#: templates/organizations/team_calendar.html:285
 #: templates/organizations/weekly_calendar.html:307
 msgid "Week"
 msgstr "Woche"
 
-#: templates/organizations/team_calendar.html:288
 #: templates/organizations/weekly_calendar.html:310
 msgid "Today"
 msgstr "Heute"
 
-#: templates/organizations/team_calendar.html:314
-#, python-format
-msgid "Add event at %(time)s on %(day)s"
-msgstr "Termin um %(time)s am %(day)s hinzufügen"
-
-#: templates/organizations/team_calendar.html:338
-msgid "No events for this week. Click on a time slot to add one."
-msgstr ""
-"Keine Termine für diese Woche. Klicken Sie auf einen Zeit-Slot, um einen "
-"hinzuzufügen."
-
-#: templates/organizations/team_calendar.html:346
-msgid "Edit Event"
-msgstr "Termin bearbeiten"
-
-#: templates/organizations/team_calendar.html:349
-msgid "Title"
-msgstr "Titel"
-
-#: templates/organizations/team_calendar.html:350
-msgid "e.g. Weekly Sync"
-msgstr "z.B. Wöchentliches Sync-Meeting"
-
-#: templates/organizations/team_calendar.html:352
 #: templates/organizations/weekly_calendar.html:433
 #: templates/organizations/weekly_calendar.html:460
 msgid "Notes"
 msgstr "Notizen"
 
-#: templates/organizations/team_calendar.html:353
-msgid "Add details…"
-msgstr "Details hinzufügen…"
-
-#: templates/organizations/team_calendar.html:355
-msgid "Color"
-msgstr "Farbe"
-
-#: templates/organizations/team_calendar.html:357
-msgid "Blue"
-msgstr "Blau"
-
-#: templates/organizations/team_calendar.html:358
-msgid "Red"
-msgstr "Rot"
-
-#: templates/organizations/team_calendar.html:359
-msgid "Green"
-msgstr "Grün"
-
-#: templates/organizations/team_calendar.html:360
-msgid "Yellow"
-msgstr "Gelb"
-
-#: templates/organizations/team_calendar.html:361
-msgid "Purple"
-msgstr "Lila"
-
-#: templates/organizations/team_calendar.html:362
-msgid "Gray"
-msgstr "Grau"
-
-#: templates/organizations/team_calendar.html:365
-msgid "Day"
-msgstr "Tag"
-
-#: templates/organizations/team_calendar.html:378
-msgid "Duration (min)"
-msgstr "Dauer (Min.)"
-
-#: templates/organizations/team_calendar.html:461
-#: trackable/organizations/calendar_views.py:202
-msgid "New Event"
-msgstr "Neuer Termin"
-
-#: templates/organizations/team_calendar.html:488
-#: templates/organizations/team_calendar.html:516
 #: templates/organizations/weekly_calendar.html:599
 #: templates/organizations/weekly_calendar.html:654
 msgid "Error:"
 msgstr "Fehler:"
-
-#: templates/organizations/team_calendar.html:488
-#: templates/organizations/team_calendar.html:516
-msgid "Unknown error"
-msgstr "Unbekannter Fehler"
-
-#: templates/organizations/team_calendar.html:492
-msgid "Error saving event."
-msgstr "Fehler beim Speichern des Termins."
-
-#: templates/organizations/team_calendar.html:501
-msgid "Delete this event?"
-msgstr "Diesen Termin löschen?"
-
-#: templates/organizations/team_calendar.html:520
-msgid "Error deleting event."
-msgstr "Fehler beim Löschen des Termins."
 
 #: templates/organizations/weekly_calendar.html:316
 msgid "All employees"
@@ -1984,32 +1871,16 @@ msgstr "Admin-Konto erstellt! Jetzt können Sie Ihre Einstellungen konfigurieren
 #: trackable/core/setup_views.py:104
 msgid "Setup complete! You can now log in to trackable."
 msgstr "Setup abgeschlossen! Sie können sich jetzt bei trackable anmelden."
-#: trackable/organizations/calendar_views.py:210
 msgid "day_id, start_time, and week_start are required."
 msgstr "day_id, start_time und week_start sind erforderlich."
 
-#: trackable/organizations/calendar_views.py:217
-msgid "Invalid date/time format."
-msgstr "Ungültiges Datums-/Zeitformat."
-
-#: trackable/organizations/calendar_views.py:263
 #: trackable/organizations/views.py:551
 msgid "Invalid time format."
 msgstr "Ungültiges Zeitformat."
 
-#: trackable/organizations/calendar_views.py:270
-#: trackable/organizations/calendar_views.py:311
 #: trackable/organizations/views.py:530
 msgid "Invalid date format."
 msgstr "Ungültiges Datumsformat."
-
-#: trackable/organizations/calendar_views.py:290
-msgid "You can only delete your own events."
-msgstr "Sie können nur Ihre eigenen Termine löschen."
-
-#: trackable/organizations/calendar_views.py:306
-msgid "week_start is required."
-msgstr "week_start ist erforderlich."
 
 #: trackable/organizations/decorators.py:13
 msgid "You do not have permission to access this page."
