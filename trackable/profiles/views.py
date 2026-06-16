@@ -58,6 +58,7 @@ def profile_detail(request, pk):
             "entry_count": day_entries.count(),
         })
     week_total = sum(d["total_hours"] for d in week_days)
+    has_org = request.user.is_org_member
 
     # ── Monthly overview ──
     entry_months = set(
@@ -89,6 +90,7 @@ def profile_detail(request, pk):
         "week_days": week_days,
         "week_total": week_total,
         "week_monday": monday,
+        "has_org": has_org,
     })
 
 

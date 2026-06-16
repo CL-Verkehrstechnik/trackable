@@ -16,9 +16,11 @@
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm btn-danger-light" style="min-height:44px;">🗑 {% trans "Delete" %}</button>
             </form>
+            {% if has_org %}
             <a href="/org/weekly/" class="btn btn-secondary" style="min-height:44px;">
                 📅 {% trans "Weekly Calendar" %}
             </a>
+            {% endif %}
             <a href="/add-entry/{{ profile.id }}/" class="btn btn-primary" style="font-size: 1.2rem; padding: 15px 30px;">
                 + {% trans "Log time" %}
             </a>
