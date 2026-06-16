@@ -13,12 +13,14 @@ def manage_dashboard(request):
     user_count = User.objects.count()
     staff_count = User.objects.filter(is_staff=True).count()
     superuser_count = User.objects.filter(is_superuser=True).count()
+    has_org = request.user.is_org_member
     
     return render(request, "core/manage/dashboard.html", {
         "config": config,
         "user_count": user_count,
         "staff_count": staff_count,
         "superuser_count": superuser_count,
+        "has_org": has_org,
     })
 
 

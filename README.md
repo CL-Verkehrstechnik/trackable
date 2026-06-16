@@ -186,9 +186,9 @@ Before relying on email features (registration confirmation, password resets, mo
 
 ### 7. Set up an organization (for business use)
 
-Any registered user can create an organization at `/org/`:
+Any registered user can create an organization at `/org/create/` or through the **Management panel** at `/manage/`:
 
-1. Click **"Create organization"** and enter a name — you become the **manager**
+1. Click **"Create organization"** in the management panel or at `/org/create/`, and enter a name — you become the **manager**
 2. Add employees via **"Add employee"** — fill in their name, email, and a temporary password
 3. Employees log in with the temporary password and start tracking time
 4. As manager, you see all employees' profiles, monthly hours, and earnings from the organization dashboard

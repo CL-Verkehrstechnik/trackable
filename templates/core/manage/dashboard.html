@@ -23,6 +23,11 @@
 <div style="display:flex; gap:12px; flex-wrap:wrap;">
     <a href="{% url 'manage_settings' %}" class="btn btn-primary">{% trans "Settings" %}</a>
     <a href="{% url 'manage_user_list' %}" class="btn btn-primary">{% trans "Users" %}</a>
+    {% if has_org %}
+    <a href="{% url 'org_dashboard' %}" class="btn btn-primary">{% trans "Organization" %}</a>
+    {% else %}
+    <a href="{% url 'org_create' %}" class="btn btn-primary">{% trans "Create organization" %}</a>
+    {% endif %}
     <form method="post" action="{% url 'manage_reset_setup' %}" style="display:inline;" onsubmit="return confirm('{% trans "Are you sure? New users will be redirected to the setup wizard." %}');">
         {% csrf_token %}
         <button type="submit" class="btn btn-secondary">{% trans "Reset setup wizard" %}</button>
