@@ -204,6 +204,15 @@ docker-compose -f docker-compose.prod.yaml up -d --build
 
 Migrations, static files, and translations are applied automatically on rebuild.
 
+> **Important for existing instances:**  
+> This update introduces a setup wizard. Until the instance is marked as configured, anonymous visitors may be redirected to `/setup/`. After the update, either complete the setup wizard once as an admin, or run the following command inside the app container to skip the wizard for an already-configured instance:
+>
+> ```bash
+> docker exec -it trackable-app python manage.py shell -c "from trackable.core.models import SiteConfiguration; c = SiteConfiguration.get(); c.setup_completed = True; c.save()"
+> ```
+>
+> Existing logged-in users and admin accounts are not affected.
+
 ---
 
 ## Database Backups
@@ -229,48 +238,59 @@ BACKUP_SCHEDULE=weekly        # Options: daily, weekly
 BACKUP_FILENAME=db_backup.sqlite3
 ```
 
-#### Custom Cron Job (Advanced)
+#### Automated Host Backups (recommended)
 
-For more control, set up a cron job on your host system:
+For a complete, automated backup of the database **and** media uploads (logos, favicons, etc.), use the included generic backup script:
 
-1. **Create backup script** `/opt/trackable/backup.sh`:
+1. **Copy the script to your host:**
 
 ```bash
-#!/bin/bash
-BACKUP_DIR="/opt/trackable/backups"
-DATE=$(date +%Y%m%d_%H%M%S)
-
-mkdir -p $BACKUP_DIR
-docker exec trackable-app cp /app/data/db.sqlite3 /tmp/backup_$DATE.sqlite3
-docker cp trackable-app:/tmp/backup_$DATE.sqlite3 $BACKUP_DIR/
-docker exec trackable-app rm /tmp/backup_$DATE.sqlite3
-
-# Keep only last 10 backups
-ls -t $BACKUP_DIR/*.sqlite3 | tail -n +11 | xargs -r rm
-```
-
-Make it executable:
-```bash
+mkdir -p /opt/trackable
+cp scripts/backup.sh /opt/trackable/backup.sh
 chmod +x /opt/trackable/backup.sh
 ```
 
-2. **Add cron job** (run `crontab -e`):
+2. **Adjust the configuration** at the top of `/opt/trackable/backup.sh`:
+
+```bash
+PROJECT_NAME="trackable"
+BACKUP_DIR="/opt/trackable/backups"
+DB_CONTAINER_PATH="/app/data/db.sqlite3"
+MEDIA_CONTAINER_PATH="/app/media"
+BACKUP_MEDIA=true
+RETENTION_DAYS=30
+
+# For Coolify: set your Coolify project name
+COOLIFY_PROJECT_NAME=""
+
+# For Docker Compose: set the container name filter
+CONTAINER_NAME_FILTER="trackable-app"
+```
+
+> For **Coolify** deployments, set `COOLIFY_PROJECT_NAME` to the project name shown in the Coolify UI and `CONTAINER_NAME_FILTER` to a string that matches your app container (e.g. `django` or `trackable`).
+>
+> For **plain Docker Compose** deployments, leave `COOLIFY_PROJECT_NAME` empty and set `CONTAINER_NAME_FILTER` to your app container name (usually `trackable-app`).
+
+3. **Add a cron job** (`crontab -e`):
 
 ```cron
 # Daily backup at 2:00 AM
 0 2 * * * /opt/trackable/backup.sh
 
-# Weekly backup (Sundays at 3:00 AM)
+# Or weekly on Sundays at 3:00 AM
 0 3 * * 0 /opt/trackable/backup.sh
 ```
 
-3. **Verify backups**:
+4. **Verify backups**:
 
 ```bash
-ls -la /opt/trackable/backups/
+ls -la /opt/trackable/backups/db/
+ls -la /opt/trackable/backups/media/
 ```
 
-> 💡 **Tip**: Mount the backup directory as a Docker volume or sync to cloud storage (e.g., rclone, rsync) for off-site backups.
+The script keeps backups for `RETENTION_DAYS` days and writes a log to `/opt/trackable/backups/backup.log`.
+
+> 💡 **Tip**: Sync the backup directory to cloud storage (e.g., rclone, rsync, restic) for off-site backups.
 
 ### Coolify
 
